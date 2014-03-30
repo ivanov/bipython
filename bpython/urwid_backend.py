@@ -628,6 +628,103 @@ class URWIDRepl(repl.Repl):
         self.exit_value = ()
 
         load_urwid_command_map(config)
+        self.ipython = self.connect_ipython_kernel()
+
+    def connect_ipython_kernel(self, s=''):
+        """create kernel manager from IPKernelApp string
+        such as '--shell=47378 --iopub=39859 --stdin=36778 --hb=52668' for IPython 0.11
+        or just 'kernel-12345.json' for IPython 0.12
+
+        XXX: copy-paste engineering from vim-ipython. Proceed with caution
+        """
+        def echo(x):
+            print x
+
+        try:
+            import IPython
+        except ImportError:
+            raise ImportError("Could not find IPython. bipython needs it")
+        from IPython.config.loader import KeyValueConfigLoader
+        from Queue import Empty
+        try:
+            from IPython.kernel import (
+                KernelManager,
+                find_connection_file,
+            )
+        except ImportError:
+            #  IPython < 1.0
+            from IPython.zmq.blockingkernelmanager import BlockingKernelManager as KernelManager
+            from IPython.zmq.kernelapp import kernel_aliases
+            try:
+                from IPython.lib.kernel import find_connection_file
+            except ImportError:
+                # < 0.12, no find_connection_file
+                pass
+            
+        s = s.replace('--existing', '')
+        if 'connection_file' in KernelManager.class_trait_names():
+            # 0.12 uses files instead of a collection of ports
+            # include default IPython search path
+            # filefind also allows for absolute paths, in which case the search
+            # is ignored
+            try:
+                # XXX: the following approach will be brittle, depending on what
+                # connection strings will end up looking like in the future, and
+                # whether or not they are allowed to have spaces. I'll have to sync
+                # up with the IPython team to address these issues -pi
+                if '--profile' in s:
+                    k,p = s.split('--profile')
+                    k = k.lstrip().rstrip() # kernel part of the string
+                    p = p.lstrip().rstrip() # profile part of the string
+                    fullpath = find_connection_file(k,p)
+                else:
+                    fullpath = find_connection_file(s.lstrip().rstrip())
+            except IOError,e:
+                echo(":IPython " + s + " failed", "Info")
+                echo("^-- failed '" + s + "' not found", "Error")
+                return
+            km = KernelManager(connection_file = fullpath)
+            km.load_connection_file()
+        else:
+            if s == '':
+                echo(":IPython 0.11 requires the full connection string")
+                return
+            loader = KeyValueConfigLoader(s.split(), aliases=kernel_aliases)
+            cfg = loader.load_config()['KernelApp']
+            try:
+                ip = '127.0.0.1'
+                km = KernelManager(
+                    shell_address=(ip, cfg['shell_port']),
+                    sub_address=(ip, cfg['iopub_port']),
+                    stdin_address=(ip, cfg['stdin_port']),
+                    hb_address=(ip, cfg['hb_port']))
+            except KeyError,e:
+                echo(":IPython " +s + " failed", "Info")
+                echo("^-- failed --"+e.message.replace('_port','')+" not specified", "Error")
+                return
+
+        try:
+            kc = km.client()
+        except AttributeError:
+            # 0.13
+            kc = km
+        kc.start_channels()
+
+        #XXX: backwards compatibility for IPython < 0.13
+        sc = kc.shell_channel
+        num_oinfo_args = len(inspect.getargspec(sc.object_info).args)
+        if num_oinfo_args == 2:
+            # patch the object_info method which used to only take one argument
+            klass = sc.__class__
+            klass._oinfo_orig = klass.object_info
+            klass.object_info = lambda s,x,y: s._oinfo_orig(x)
+        
+        #XXX: backwards compatibility for IPython < 1.0
+        if not hasattr(kc, 'iopub_channel'):
+            kc.iopub_channel = kc.sub_channel
+        print km
+        return km
+
 
     # Subclasses of Repl need to implement echo, current_line, cw
     def echo(self, orig_s):
