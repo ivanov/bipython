@@ -727,7 +727,9 @@ class URWIDRepl(repl.Repl):
         if not hasattr(kc, 'iopub_channel'):
             kc.iopub_channel = kc.sub_channel
         print km
-        self.send_ipython('bpython connected')
+        self.send_ipython('# bpython connected')
+        self.km = km
+        self.kc = kc
         return km
 
     def complete(self, tab=False):
@@ -753,7 +755,7 @@ class URWIDRepl(repl.Repl):
         cw = self.cw()
         cs = self.current_string()
 
-        self.send_ipython("" + " ".join([cw or '', cs]))
+        self.send_ipython("# completion " + " ".join([cw or '', cs]))
 
         if not cw:
             self.matches = []
@@ -1118,6 +1120,17 @@ class URWIDRepl(repl.Repl):
         self.echo(s)
         self.s_hist.append(s.rstrip())
 
+    def ipython_get_child_msg(self, msg_id):
+        # XXX: message handling should be split into its own process in the future
+        while True:
+            # get_msg will raise with Empty exception if no messages arrive in 1 second
+            m = self.kc.shell_channel.get_msg(timeout=1)
+            if m['parent_header']['msg_id'] == msg_id:
+                break
+            else:
+                #got a message, but not the one we were looking for
+                self.echo('skipping a message on shell_channel')
+        return m
 
     def push(self, s, insert_into_history=True):
         # Restore the original SIGINT handler. This is needed to be able
@@ -1127,6 +1140,9 @@ class URWIDRepl(repl.Repl):
         signal.signal(signal.SIGINT, signal.default_int_handler)
         # Pretty blindly adapted from bpython.cli
         try:
+            msg_id = self.send_ipython(s)
+            ret_msg = self.ipython_get_child_msg(msg_id)
+            self.send_ipython("###retmsg " + str(ret_msg))
             return repl.Repl.push(self, s, insert_into_history)
         except SystemExit, e:
             self.exit_value = e.args
