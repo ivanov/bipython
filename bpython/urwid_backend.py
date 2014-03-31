@@ -51,10 +51,11 @@ from bpython import args as bpargs, repl, translations
 from bpython._py3compat import py3
 from bpython.formatter import theme_map
 from bpython.importcompletion import find_coroutine
-from bpython import importcompletion
+from bpython import importcompletion, inspection
 from bpython.translations import _
 
 from bpython.keys import urwid_key_dispatch as key_dispatch
+from bpython._py3compat import PythonLexer, py3
 
 import urwid
 
@@ -741,26 +742,100 @@ class URWIDRepl(repl.Repl):
         self.km = km
         self.kc = kc
         return km
+    
+    def _get_args(self):
+        """Check if an unclosed parenthesis exists, then attempt to get the
+        argspec() for it. On success, update self.argspec and return True,
+        otherwise set self.argspec to None and return False"""
 
+        self.current_func = None
+
+
+        if not self.config.arg_spec:
+            self.echo('i suck')
+            return False
+
+        #self.echod('\ri rule')
+        # Get the name of the current function and where we are in
+        # the arguments
+        stack = [['', 0, '']]
+        try:
+            for (token, value) in PythonLexer().get_tokens(
+                self.current_line()):
+                if token is Token.Punctuation:
+                    if value in '([{':
+                        stack.append(['', 0, value])
+                    elif value in ')]}':
+                        stack.pop()
+                    elif value == ',':
+                        try:
+                            stack[-1][1] += 1
+                        except TypeError:
+                            stack[-1][1] = ''
+                        stack[-1][0] = ''
+                    elif value == ':' and stack[-1][2] == 'lambda':
+                        stack.pop()
+                    else:
+                        stack[-1][0] = ''
+                elif (token is Token.Name or token in Token.Name.subtypes or
+                      token is Token.Operator and value == '.'):
+                    stack[-1][0] += value
+                elif token is Token.Operator and value == '=':
+                    stack[-1][1] = stack[-1][0]
+                    stack[-1][0] = ''
+                elif token is Token.Keyword and value == 'lambda':
+                    stack.append(['', 0, value])
+                else:
+                    stack[-1][0] = ''
+            while stack[-1][2] in '[{':
+                stack.pop()
+            _, arg_number, _ = stack.pop()
+            func, _, _ = stack.pop()
+        except IndexError:
+            return False
+        if not func:
+            return False
+      
+        self.echod('here we go, func is ' + func)
+        self.current_func = func
+        # XXX: this code needs to run on the ipython side
+        #try:
+        #    f = self.get_object(func)
+        #except (AttributeError, NameError, SyntaxError):
+        #    return False
+
+        #if inspect.isclass(f):
+        #    try:
+        #        if f.__init__ is not object.__init__:
+        #            f = f.__init__
+        #    except AttributeError:
+        #        return None
+        #self.current_func = f
+
+        #self.argspec = inspection.getargspec(func, f)
+        #if self.argspec:
+        #    self.argspec.append(arg_number)
+        #    return True
+        return False
+    
     def complete(self, tab=False):
-        """Construct a full list of possible completions and construct and
-        display them in a window. Also check if there's an available argspec
-        (via the inspect module) and bang that on top of the completions too.
-        The return value is whether the list_win is visible or not."""
-
+        "bipython completion - punt to ipython"
         self.docstring = None
-        if not self.get_args():
+        
+        if not self._get_args():
             self.argspec = None
-        elif self.current_func is not None:
+        #elif self.current_func is not None:
+        if self.current_func is not None:
             try:
-                self.docstring = pydoc.getdoc(self.current_func)
+                #self.docstring = pydoc.getdoc(self.current_func)
                 #XXX insert get_doc logic here
                 level = 0
-                msg_id = self.kc.shell_channel.object_info(self.current_func.__name__, level)
+                #self.send_ipython('#got to func completion', self.current_func)
+                func = self.current_func
+                msg_id = self.kc.shell_channel.object_info(func, level)
                 doc = self.ipython_get_doc_msg(msg_id)
                 if len(doc) == 0:
-                    self.echo('uh -oh!')
-                    raise IndexError
+                    doc = [' empty, like my soul' ] 
                 self.docstring = "\nipython: ".join(doc)
                 #self.send_ipython('#got to func completion')
             except IndexError:
@@ -771,99 +846,164 @@ class URWIDRepl(repl.Repl):
                 if not self.docstring:
                     self.docstring = None
 
-        cw = self.cw()
-        cs = self.current_string()
+        pos = self.edit.edit_pos
+        text = self.edit.get_edit_text()
 
-        # XXX: ipython completion
-        # self.send_ipython("# completion " + " ".join([cw or '', cs]))
+        cw = self.cw() or ''
+        
+        #if text.find('(') != -1:
+        #    # XXX: primitive heuristic, good enough for testing
+        #    #self.echod('found a paren ' + (self.argspec or ''));
+        #    level =0
+        #    msg_id = self.kc.shell_channel.object_info(text[:text.find('(')], level)
+        #    doc = self.ipython_get_doc_msg(msg_id)
+        #    if len(doc) == 0:
+        #        doc = [text[:text.find('(')] + ' empty, too, like my soul' ] 
+        #    self.docstring = "\nipython: ".join(doc)
 
-        if not cw:
+        if not cw and not tab:
+            # don't trigger automatic completion on empty lines
             self.matches = []
             self.matches_iter.update()
-        if not (cw or cs):
-            return bool(self.argspec)
-
-        if cs and tab:
-            # Filename completion
-            self.matches = list()
-            username = cs.split(os.path.sep, 1)[0]
-            user_dir = os.path.expanduser(username)
-            for filename in glob(os.path.expanduser(cs + '*')):
-                if os.path.isdir(filename):
-                    filename += os.path.sep
-                if cs.startswith('~'):
-                    filename = username + filename[len(user_dir):]
-                self.matches.append(filename)
-            self.matches.append('greetings!')
-            self.matches_iter.update(cs, self.matches)
-            return bool(self.matches)
-        elif cs:
-            # Do not provide suggestions inside strings, as one cannot tab
-            # them so they would be really confusing.
-            self.matches_iter.update()
-            return False
-
-        # Check for import completion
-        e = False
-        matches = importcompletion.complete(self.current_line(), cw)
-        if matches is not None and not matches:
-            self.matches = []
-            self.matches_iter.update()
-            return False
-
-        if matches is None:
-            # Nope, no import, continue with normal completion
-            try:
-                self.completer.complete(cw, 0)
-            except Exception:
-                # This sucks, but it's either that or list all the exceptions that could
-                # possibly be raised here, so if anyone wants to do that, feel free to send me
-                # a patch. XXX: Make sure you raise here if you're debugging the completion
-                # stuff !
-                e = True
-            else:
-                matches = self.completer.matches
-                if (self.config.complete_magic_methods and self.buffer and
-                    self.buffer[0].startswith("class ") and
-                    self.current_line().lstrip().startswith("def ")):
-                    matches.extend(name for name in self.config.magic_methods
-                                   if name.startswith(cw))
-
-        if not e and self.argspec:
-            matches.extend(name + '=' for name in self.argspec[1][0]
-                           if isinstance(name, basestring) and name.startswith(cw))
-            if py3:
-                matches.extend(name + '=' for name in self.argspec[1][4]
-                               if name.startswith(cw))
-
-        # unless the first character is a _ filter out all attributes starting with a _
-        if not e and not cw.split('.')[-1].startswith('_'):
-            matches = [match for match in matches
-                       if not match.split('.')[-1].startswith('_')]
-
-        if e or not matches:
-            self.matches = []
-            self.matches_iter.update()
-            if not self.argspec:
-                return False
+            return False or self.docstring #and self.docstring.find('ipython') != -1
         else:
-            # remove duplicates
-            self.matches = sorted(set(matches))
-
-
-        if len(self.matches) == 1 and not self.config.auto_display_list:
-            self.list_win_visible = True
-            self.tab()
-            return False
-
+            self.docstring = 'yak yak yak!'
+        self.matches = self.ipython_complete(cw, text, pos)
         self.matches_iter.update(cw, self.matches)
-        return True
+        return bool(self.matches) #or self.docstring.find('ipython') != -1
+
+        #if tab:
+        #    return bool(self.matches)
+        #return False
+        #cs = self.current_string()
+
+    #def _complete(self, tab=False):
+    #    """Construct a full list of possible completions and construct and
+    #    display them in a window. Also check if there's an available argspec
+    #    (via the inspect module) and bang that on top of the completions too.
+    #    The return value is whether the list_win is visible or not."""
+
+    #    self.docstring = None
+    #    if not self.get_args():
+    #        self.argspec = None
+    #    elif self.current_func is not None:
+    #        try:
+    #            #self.docstring = pydoc.getdoc(self.current_func)
+    #            #XXX insert get_doc logic here
+    #            level = 0
+    #            #self.send_ipython('#got to func completion', self.current_func)
+    #            func = self.current_func
+    #            msg_id = self.kc.shell_channel.object_info(func, level)
+    #            doc = self.ipython_get_doc_msg(msg_id)
+    #            if len(doc) == 0:
+    #                doc = [' empty, like my soul' ] 
+    #            self.docstring = "\nipython: ".join(doc)
+    #            #self.send_ipython('#got to func completion')
+    #        except IndexError:
+    #            self.docstring = None
+    #        else:
+    #            # pydoc.getdoc() returns an empty string if no
+    #            # docstring was found
+    #            if not self.docstring:
+    #                self.docstring = None
+
+    #    cw = self.cw()
+    #    cs = self.current_string()
+
+    #    # XXX: ipython completion
+    #    # self.send_ipython("# completion " + " ".join([cw or '', cs]))
+
+    #    if not cw:
+    #        self.matches = []
+    #        self.matches_iter.update()
+    #    if not (cw or cs):
+    #        return bool(self.argspec)
+
+    #    if cs and tab:
+    #        # Filename completion
+    #        self.matches = list()
+    #        username = cs.split(os.path.sep, 1)[0]
+    #        user_dir = os.path.expanduser(username)
+    #        for filename in glob(os.path.expanduser(cs + '*')):
+    #            if os.path.isdir(filename):
+    #                filename += os.path.sep
+    #            if cs.startswith('~'):
+    #                filename = username + filename[len(user_dir):]
+    #            self.matches.append(filename)
+
+    #        # get ipython matches
+    #        self.matches.append('greetings!')
+    #        self.matches.append(self.ipython_complete(cw, cs))
+    #        self.matches_iter.update(cs, self.matches)
+    #        return bool(self.matches)
+    #    elif cs:
+    #        # Do not provide suggestions inside strings, as one cannot tab
+    #        # them so they would be really confusing.
+    #        self.matches_iter.update()
+    #        return False
+
+    #    # Check for import completion
+    #    e = False
+    #    matches = importcompletion.complete(self.current_line(), cw)
+    #    if matches is not None and not matches:
+    #        self.matches = []
+    #        self.matches_iter.update()
+    #        return False
+
+    #    if matches is None:
+    #        # Nope, no import, continue with normal completion
+    #        try:
+    #            self.completer.complete(cw, 0)
+    #        except Exception:
+    #            # This sucks, but it's either that or list all the exceptions that could
+    #            # possibly be raised here, so if anyone wants to do that, feel free to send me
+    #            # a patch. XXX: Make sure you raise here if you're debugging the completion
+    #            # stuff !
+    #            e = True
+    #        else:
+    #            matches = self.completer.matches
+    #            if (self.config.complete_magic_methods and self.buffer and
+    #                self.buffer[0].startswith("class ") and
+    #                self.current_line().lstrip().startswith("def ")):
+    #                matches.extend(name for name in self.config.magic_methods
+    #                               if name.startswith(cw))
+
+    #    if not e and self.argspec:
+    #        matches.extend(name + '=' for name in self.argspec[1][0]
+    #                       if isinstance(name, basestring) and name.startswith(cw))
+    #        if py3:
+    #            matches.extend(name + '=' for name in self.argspec[1][4]
+    #                           if name.startswith(cw))
+
+    #    # unless the first character is a _ filter out all attributes starting with a _
+    #    if not e and not cw.split('.')[-1].startswith('_'):
+    #        matches = [match for match in matches
+    #                   if not match.split('.')[-1].startswith('_')]
+
+    #    if e or not matches:
+    #        self.matches = []
+    #        self.matches_iter.update()
+    #        if not self.argspec:
+    #            return False
+    #    else:
+    #        # remove duplicates
+    #        self.matches = sorted(set(matches))
+
+
+    #    if len(self.matches) == 1 and not self.config.auto_display_list:
+    #        self.list_win_visible = True
+    #        self.tab()
+    #        return False
+
+    #    self.matches_iter.update(cw, self.matches)
+    #    return True
 
 
     # Subclasses of Repl need to implement echo, current_line, cw
     def echod(self, orig_s):
         #self.write(orig_s)
-        pass
+        if self.edit:
+            self.edit.set_caption(orig_s)
 
     def echo(self, orig_s):
         s = orig_s.rstrip('\n')
@@ -1144,19 +1284,38 @@ class URWIDRepl(repl.Repl):
         self.echo(s)
         self.s_hist.append(s.rstrip())
 
+    def ipython_complete(self, base, current_line, pos=None):
+        #self.echo('\ncomplete called' + base + ' ' + current_line)
+        msg_id = self.kc.shell_channel.complete(base, current_line, pos)
+        try:
+            #self.echod('\ntrying to get match for ' + base + " XXX")
+            m = self.ipython_get_child_msg(msg_id)
+            matches = m['content']['matches']
+            #matches.insert(0,base) # the "no completion" version #not for bp
+            # we need to be careful with unicode, because we can have unicode
+            # completions for filenames (for the %run magic, for example). So the next
+            # line will fail on those:
+            #completions= [str(u) for u in matches]
+            # because str() won't work for non-ascii characters
+            # and we also have problems with unicode in vim, hence the following:
+            #self.echo("\nmatches: " + " ".join(matches))
+            return matches
+        except Empty:
+            self.echo("no reply from IPython kernel")
+            return ['']
+
     def ipython_get_child_msg(self, msg_id):
         # XXX: message handling should be split into its own process in the future
         while True:
             # get_msg will raise with Empty exception if no messages arrive in 1 second
             m = self.kc.shell_channel.get_msg(timeout=1)
             if m['parent_header']['msg_id'] == msg_id:
-                self.echod('\n\tshell_channel: '
-                        + str(m['content']))
+                #self.echod('\n\tshell_channel: ' + str(m['content']))
                 break
             else:
                 #got a message, but not the one we were looking for
-                self.echod('\n\tshell_channel (skipping): '
-                        + str(m['content']))
+                #self.echod('\n\tshell_channel (skipping): ' + str(m['content']))
+                pass
         return m
     
     def ipython_get_doc_msg(self, msg_id):
@@ -1194,7 +1353,7 @@ class URWIDRepl(repl.Repl):
         for m in msgs:
             #db.append(str(m).splitlines())
             s = ''
-            self.echod('\n\tiopub channel: ' + str(m['content']))
+            #self.echod('\n\tiopub channel: ' + str(m['content']))
             if 'msg_type' not in m['header']:
                 # debug information
                 #echo('skipping a message on sub_channel','WarningMsg')
@@ -1254,17 +1413,17 @@ class URWIDRepl(repl.Repl):
             returned = self.ipython_process_msgs()
             msg_id = self.send_ipython(s)
             ret_msg = self.ipython_get_child_msg(msg_id)
-            self.echod('\n shell: ' + str(ret_msg['content']))
+            #self.echod('\n shell: ' + str(ret_msg['content']))
             #self.send_ipython("###retmsg " + str(ret_msg))
             returned = self.ipython_process_msgs()
             #self.send_ipython("###retmsg " + str(returned))
             #self.prompt(
-            self.echod("\n#ipython".join(returned))
-            x = repl.Repl.push(self, s, insert_into_history) 
-            self.echod("\n#ipython".join(returned))
+            #self.echod("\n#ipython".join(returned))
+            #x = repl.Repl.push(self, s, insert_into_history) 
+            #self.echod("\n#ipython".join(returned))
             #self.send_ipython("x = " + str(x))
             #+ "\n".join(returned) 
-            return x
+            return False
         except SystemExit, e:
             self.exit_value = e.args
             raise urwid.ExitMainLoop()
