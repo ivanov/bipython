@@ -61,6 +61,8 @@ import urwid
 if not py3:
     import inspect
 
+from Queue import Empty
+
 Parenthesis = Token.Punctuation.Parenthesis
 
 # Urwid colors are:
@@ -114,6 +116,14 @@ else:
 
         def buildProtocol(self, addr):
             return EvalProtocol(self.repl)
+
+# XXX: copy-paste eng from vim-ipython
+import re
+# from http://serverfault.com/questions/71285/in-centos-4-4-how-can-i-strip-escape-sequences-from-a-text-file
+strip = re.compile('\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]')
+
+def strip_color_escapes(s):
+    return strip.sub('',s)
 
 
 # If Twisted is not available urwid has no TwistedEventLoop attribute.
@@ -683,14 +693,14 @@ class URWIDRepl(repl.Repl):
                 else:
                     fullpath = find_connection_file(s.lstrip().rstrip())
             except IOError,e:
-                echo(":IPython " + s + " failed", "Info")
-                echo("^-- failed '" + s + "' not found", "Error")
+                self.echod(":IPython " + s + " failed", "Info")
+                self.echod("^-- failed '" + s + "' not found", "Error")
                 return
             km = KernelManager(connection_file = fullpath)
             km.load_connection_file()
         else:
             if s == '':
-                echo(":IPython 0.11 requires the full connection string")
+                self.echod(":IPython 0.11 requires the full connection string")
                 return
             loader = KeyValueConfigLoader(s.split(), aliases=kernel_aliases)
             cfg = loader.load_config()['KernelApp']
@@ -702,8 +712,8 @@ class URWIDRepl(repl.Repl):
                     stdin_address=(ip, cfg['stdin_port']),
                     hb_address=(ip, cfg['hb_port']))
             except KeyError,e:
-                echo(":IPython " +s + " failed", "Info")
-                echo("^-- failed --"+e.message.replace('_port','')+" not specified", "Error")
+                self.echod(":IPython " +s + " failed", "Info")
+                self.echod("^-- failed --"+e.message.replace('_port','')+" not specified", "Error")
                 return
 
         try:
@@ -744,6 +754,15 @@ class URWIDRepl(repl.Repl):
         elif self.current_func is not None:
             try:
                 self.docstring = pydoc.getdoc(self.current_func)
+                #XXX insert get_doc logic here
+                level = 0
+                msg_id = self.kc.shell_channel.object_info(self.current_func.__name__, level)
+                doc = self.ipython_get_doc_msg(msg_id)
+                if len(doc) == 0:
+                    self.echo('uh -oh!')
+                    raise IndexError
+                self.docstring = "\nipython: ".join(doc)
+                #self.send_ipython('#got to func completion')
             except IndexError:
                 self.docstring = None
             else:
@@ -755,7 +774,8 @@ class URWIDRepl(repl.Repl):
         cw = self.cw()
         cs = self.current_string()
 
-        self.send_ipython("# completion " + " ".join([cw or '', cs]))
+        # XXX: ipython completion
+        # self.send_ipython("# completion " + " ".join([cw or '', cs]))
 
         if not cw:
             self.matches = []
@@ -841,6 +861,10 @@ class URWIDRepl(repl.Repl):
 
 
     # Subclasses of Repl need to implement echo, current_line, cw
+    def echod(self, orig_s):
+        #self.write(orig_s)
+        pass
+
     def echo(self, orig_s):
         s = orig_s.rstrip('\n')
         if s:
@@ -1126,12 +1150,99 @@ class URWIDRepl(repl.Repl):
             # get_msg will raise with Empty exception if no messages arrive in 1 second
             m = self.kc.shell_channel.get_msg(timeout=1)
             if m['parent_header']['msg_id'] == msg_id:
+                self.echod('\n\tshell_channel: '
+                        + str(m['content']))
                 break
             else:
                 #got a message, but not the one we were looking for
-                self.echo('skipping a message on shell_channel')
+                self.echod('\n\tshell_channel (skipping): '
+                        + str(m['content']))
         return m
+    
+    def ipython_get_doc_msg(self, msg_id):
+        n = 13 # longest field name (empirically)
+        b=[]
+        try:
+            content = self.ipython_get_child_msg(msg_id)['content']
+        except Empty:
+            # timeout occurred
+            return ["no reply from IPython kernel"]
 
+        if not content['found']:
+            return b
+
+        for field in ['type_name','base_class','string_form','namespace',
+                'file','length','definition','source','docstring']:
+            c = content.get(field,None)
+            if c:
+                if field in ['definition']:
+                    c = strip_color_escapes(c).rstrip()
+                s = field.replace('_',' ').title()+':'
+                s = s.ljust(n)
+                if c.find('\n')==-1:
+                    b.append(s+c)
+                else:
+                    b.append(s)
+                    b.extend(c.splitlines())
+        return b
+    
+    def ipython_process_msgs(self):
+        b = ['\nIPY msgs']
+        status_prompt_out = 'ipython: Out[%(line)d]:' 
+        status_prompt_in = 'ipython: In [%(line)d]:' 
+        msgs = self.kc.iopub_channel.get_msgs()
+        for m in msgs:
+            #db.append(str(m).splitlines())
+            s = ''
+            self.echod('\n\tiopub channel: ' + str(m['content']))
+            if 'msg_type' not in m['header']:
+                # debug information
+                #echo('skipping a message on sub_channel','WarningMsg')
+                #echo(str(m))
+                continue
+            header = m['header']['msg_type']
+            if header == 'status':
+                #self.ipython_execution_count = m['content']['execution_count']
+                continue
+            elif header == 'stream':
+                # TODO: alllow for distinguishing between stdout and stderr (using
+                # custom syntax markers in the vim-ipython buffer perhaps), or by
+                # also echoing the message to the status bar
+                s = strip_color_escapes(m['content']['data'])
+                self.echo('ipython stream' + s)
+            elif header == 'pyout':
+                s = status_prompt_out % {'line': m['content']['execution_count']}
+                s += m['content']['data']['text/plain']
+                self.echo('ipython' + s)
+            elif header == 'display_data':
+                # TODO: handle other display data types (HMTL? images?)
+                s += m['content']['data']['text/plain']
+            elif header == 'pyin':
+                # TODO: the next line allows us to resend a line to ipython if
+                # %doctest_mode is on. In the future, IPython will send the
+                # execution_count on subchannel, so this will need to be updated
+                # once that happens
+                line_number = m['content'].get('execution_count', 0)
+                #XXX: ignore these for now, assume we've typed them
+                prompt = status_prompt_in % {'line': line_number}
+                s = prompt
+                # add a continuation line (with trailing spaces if the prompt has them)
+                dots = '.' * len(prompt.rstrip())
+                dots += prompt[len(prompt.rstrip()):]
+                s += m['content']['code'].rstrip().replace('\n', '\n' + dots)
+            elif header == 'pyerr':
+                c = m['content']
+                s = "\n".join(map(strip_color_escapes,c['traceback']))
+                s += c['ename'] + ":" + c['evalue']
+            else:
+                s = 'unknown header: ' + header
+
+            if s.find('\n') == -1:
+                b.append(s)
+            else:
+                b.append(s.splitlines())
+            update_occured = True
+            return b
     def push(self, s, insert_into_history=True):
         # Restore the original SIGINT handler. This is needed to be able
         # to break out of infinite loops. If the interpreter itself
@@ -1140,10 +1251,20 @@ class URWIDRepl(repl.Repl):
         signal.signal(signal.SIGINT, signal.default_int_handler)
         # Pretty blindly adapted from bpython.cli
         try:
+            returned = self.ipython_process_msgs()
             msg_id = self.send_ipython(s)
             ret_msg = self.ipython_get_child_msg(msg_id)
-            self.send_ipython("###retmsg " + str(ret_msg))
-            return repl.Repl.push(self, s, insert_into_history)
+            self.echod('\n shell: ' + str(ret_msg['content']))
+            #self.send_ipython("###retmsg " + str(ret_msg))
+            returned = self.ipython_process_msgs()
+            #self.send_ipython("###retmsg " + str(returned))
+            #self.prompt(
+            self.echod("\n#ipython".join(returned))
+            x = repl.Repl.push(self, s, insert_into_history) 
+            self.echod("\n#ipython".join(returned))
+            #self.send_ipython("x = " + str(x))
+            #+ "\n".join(returned) 
+            return x
         except SystemExit, e:
             self.exit_value = e.args
             raise urwid.ExitMainLoop()
