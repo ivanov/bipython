@@ -677,6 +677,7 @@ class URWIDRepl(repl.Repl):
         load_urwid_command_map(config)
         self.ipython = self.connect_ipython_kernel()
         self.ipy_execution_count = '0'
+        self.ipy_pid = None
         self.debug_docstring = ''
     
     @property
@@ -698,7 +699,6 @@ class URWIDRepl(repl.Repl):
         except ImportError:
             raise ImportError("Could not find IPython. bipython needs it")
         from IPython.config.loader import KeyValueConfigLoader
-        from Queue import Empty
         try:
             from IPython.kernel import (
                 KernelManager,
@@ -1344,6 +1344,54 @@ class URWIDRepl(repl.Repl):
         self.echo(s)
         self.s_hist.append(s.rstrip())
 
+    def ipython_set_pid(self):
+        """
+        Explicitly ask the ipython kernel for its pid
+        """
+        lines = '\n'.join(['import os', '_pid = os.getpid()'])
+        msg_id = self.send_ipython(lines, silent=True, user_variables=['_pid'])
+
+        # wait to get message back from kernel
+        try:
+            child = self.ipython_get_child_msg(msg_id)
+        except Empty:
+            self.echo("no reply from IPython kernel")
+            return
+        try:
+            pid = int(child['content']['user_variables']['_pid'])
+        except TypeError: # change in IPython 1.0.dev moved this out
+            pid = int(child['content']['user_variables']['_pid']['data']['text/plain'])
+        except KeyError: # change in IPython 1.0.dev moved this out
+            self.echo("Could not get PID information, kernel not running Python?")
+        self.ipy_pid = pid
+
+    def ipython_interrupt_kernel_hack(self, signal_to_send=None):
+        """
+        Sends the interrupt signal to the remote kernel.  This side steps the
+        (non-functional) ipython interrupt mechanisms.
+        Only works on posix.
+        """
+        pid = self.ipy_pid
+        if pid is None:
+            # Avoid errors if we couldn't get pid originally,
+            # by trying to obtain it now
+            self.ipython_set_pid()
+            pid = self.ipy_pid
+
+            if pid is None:
+                self.echo("cannot get kernel PID, Ctrl-C will not be supported")
+                return
+        if not signal_to_send:
+            signal_to_send = signal.SIGINT
+
+        self.echo("KeyboardInterrupt (sent to ipython: pid " +
+            "%i with signal %s)" % (pid, signal_to_send))
+        try:
+            os.kill(pid, int(signal_to_send))
+        except OSError:
+            self.echo("unable to kill pid %d" % pid)
+            pid = None
+
     def ipython_get_argspec(self, func):
         self.send_ipython('', silent=True,
                 user_expressions={'argspec': 'bipy_argspec("'+func+'")'})
@@ -1485,7 +1533,7 @@ class URWIDRepl(repl.Repl):
                 s += c['ename'] + ":" + c['evalue']
 
             if isinstance(s, list):
-                b.extend(s+[('output','\n.'),])
+                b.extend(s)
             elif s.find('\n') == -1:
                 b.append(s)
             else:
@@ -1524,6 +1572,8 @@ class URWIDRepl(repl.Repl):
             # but make sure to not kill bpython here, so leaning on
             # ctrl+c to kill buggy code running inside bpython is safe.
             self.keyboard_interrupt()
+        except Empty:
+            self.ipython_process_msgs()
         finally:
             signal.signal(signal.SIGINT, orig_handler)
 
@@ -1533,6 +1583,7 @@ class URWIDRepl(repl.Repl):
     def keyboard_interrupt(self):
         # If the user is currently editing, interrupt him. This
         # mirrors what the regular python REPL does.
+        self.ipython_interrupt_kernel_hack()
         if self.edit is not None:
             # XXX this is a lot of code, and I am not sure it is
             # actually enough code. Needs some testing.
@@ -1562,7 +1613,7 @@ class URWIDRepl(repl.Repl):
         # ps1 is getting loaded from. If anyone wants to make
         # non-ascii prompts work feel free to fix this.
         if not more:
-            caption = ('comment', self.ipy_ps1.decode('ascii'))
+            caption = ('comment', "\n" + self.ipy_ps1.decode('ascii'))
             self.stdout_hist += self.ps1
         else:
             caption = ('prompt_more', self.ps2.decode('ascii'))
