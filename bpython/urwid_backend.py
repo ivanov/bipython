@@ -62,6 +62,8 @@ import urwid
 if not py3:
     import inspect
 
+from inspect import ArgSpec
+
 from Queue import Empty
 
 Parenthesis = Token.Punctuation.Parenthesis
@@ -87,6 +89,33 @@ COLORMAP = {
     }
 
 # Add our keys to the urwid command_map
+bipy_func = """
+def get_object(name):
+    attributes = name.split('.')
+    obj = eval(attributes.pop(0))
+    while attributes:
+        #with AttrCleaner(obj):
+        obj = getattr(obj, attributes.pop(0))
+    return obj
+
+def bipy_argspec(func):
+    try:
+        f = get_object(func)
+    except (AttributeError, NameError, SyntaxError):
+        return False
+
+    if inspect.isclass(f):
+        try:
+            if f.__init__ is not object.__init__:
+                f = f.__init__
+        except AttributeError:
+            return None
+    return getargspec(func, f)
+"""
+hack_path = '/home/pi/code/workspace/bpython/bpython/'
+with open(hack_path+'inspection_standalone.py') as f:
+    bipy_func = f.read() + bipy_func
+
 
 
 try:
@@ -741,6 +770,8 @@ class URWIDRepl(repl.Repl):
         self.send_ipython('# bpython connected')
         self.km = km
         self.kc = kc
+        # TODO: hide this from user_ns
+        self.send_ipython(bipy_func, silent=True)
         return km
     
     def _get_args(self):
@@ -796,26 +827,20 @@ class URWIDRepl(repl.Repl):
         if not func:
             return False
       
-        self.echod('here we go, func is ' + func)
+        #self.echod('here we go, func is ' + func)
         self.current_func = func
+
         # XXX: this code needs to run on the ipython side
-        #try:
-        #    f = self.get_object(func)
-        #except (AttributeError, NameError, SyntaxError):
-        #    return False
+        #       - can we recreate an argspec on this side after getting it
+        #       from the other side. ... break on through to the other side!
+        #
+        #       looks like we can. Just need to get an ArgSpec back
 
-        #if inspect.isclass(f):
-        #    try:
-        #        if f.__init__ is not object.__init__:
-        #            f = f.__init__
-        #    except AttributeError:
-        #        return None
-        #self.current_func = f
+        self.argspec = self.ipython_get_argspec(func)
 
-        #self.argspec = inspection.getargspec(func, f)
-        #if self.argspec:
-        #    self.argspec.append(arg_number)
-        #    return True
+        if self.argspec:
+            self.argspec.append(arg_number)
+            return True
         return False
     
     def complete(self, tab=False):
@@ -836,7 +861,7 @@ class URWIDRepl(repl.Repl):
                 doc = self.ipython_get_doc_msg(msg_id)
                 if len(doc) == 0:
                     doc = [' empty, like my soul' ] 
-                self.docstring = "\nipython: ".join(doc)
+                self.docstring = "\n".join(doc)
                 #self.send_ipython('#got to func completion')
             except IndexError:
                 self.docstring = None
@@ -1284,6 +1309,25 @@ class URWIDRepl(repl.Repl):
         self.echo(s)
         self.s_hist.append(s.rstrip())
 
+    def ipython_get_argspec(self, func):
+        self.send_ipython('', silent=True,
+                user_expressions={'argspec': 'bipy_argspec("'+func+'")'})
+        #for msg in self.kc.shell_channel.get_msgs():
+        #    #msg = self.kc.get_shell_msg()['content']
+        #    if 'argspec' not in msg['user_exprsessions']:
+        #        self.echod("skipping" + str(msg))
+        #    else:
+        #        break
+        msg = self.kc.get_shell_msg()['content']
+        aspec = msg['user_expressions']['argspec']
+        #self.echod(aspec['data'])
+        if 'ename' in aspec:
+            self.echod("got an error")
+            return None
+
+        return eval(aspec['data']['text/plain'])
+
+
     def ipython_complete(self, base, current_line, pos=None):
         #self.echo('\ncomplete called' + base + ' ' + current_line)
         msg_id = self.kc.shell_channel.complete(base, current_line, pos)
@@ -1410,12 +1454,10 @@ class URWIDRepl(repl.Repl):
         signal.signal(signal.SIGINT, signal.default_int_handler)
         # Pretty blindly adapted from bpython.cli
         try:
-            returned = self.ipython_process_msgs()
             msg_id = self.send_ipython(s)
             ret_msg = self.ipython_get_child_msg(msg_id)
             #self.echod('\n shell: ' + str(ret_msg['content']))
             #self.send_ipython("###retmsg " + str(ret_msg))
-            returned = self.ipython_process_msgs()
             #self.send_ipython("###retmsg " + str(returned))
             #self.prompt(
             #self.echod("\n#ipython".join(returned))
