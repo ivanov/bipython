@@ -622,6 +622,10 @@ class URWIDInteraction(repl.Interaction):
             callback(text)
 
 
+class IPythonHistory(object):
+    # make this
+    pass
+
 class URWIDRepl(repl.Repl):
 
     _time_between_redraws = .05 # seconds
@@ -672,6 +676,12 @@ class URWIDRepl(repl.Repl):
 
         load_urwid_command_map(config)
         self.ipython = self.connect_ipython_kernel()
+        self.ipy_execution_count = '0'
+        self.debug_docstring = ''
+    
+    @property
+    def ipy_ps1(self):
+        return "In [%d]: " % (int(self.ipy_execution_count) + 1)
 
     def connect_ipython_kernel(self, s=''):
         """create kernel manager from IPKernelApp string
@@ -772,6 +782,9 @@ class URWIDRepl(repl.Repl):
         self.kc = kc
         # TODO: hide this from user_ns
         self.send_ipython(bipy_func, silent=True)
+        # TODO: get a proper history navigator
+        #self.rl_history = IPythonHistory(kc)
+
         return km
     
     def _get_args(self):
@@ -842,11 +855,21 @@ class URWIDRepl(repl.Repl):
             self.argspec.append(arg_number)
             return True
         return False
+
     
     def complete(self, tab=False):
         "bipython completion - punt to ipython"
         self.docstring = None
         
+        returned = self.ipython_process_msgs()
+
+       
+        #if returned:
+        #    self.docstring = "\n".join(returned)
+
+        if self.debug_docstring:
+            self.docstring = self.debug_docstring
+
         if not self._get_args():
             self.argspec = None
         #elif self.current_func is not None:
@@ -891,8 +914,8 @@ class URWIDRepl(repl.Repl):
             self.matches = []
             self.matches_iter.update()
             return False or self.docstring #and self.docstring.find('ipython') != -1
-        else:
-            self.docstring = 'yak yak yak!'
+        #else:
+        #    self.docstring = 'yak yak yak!'
         self.matches = self.ipython_complete(cw, text, pos)
         self.matches_iter.update(cw, self.matches)
         return bool(self.matches) #or self.docstring.find('ipython') != -1
@@ -1031,10 +1054,17 @@ class URWIDRepl(repl.Repl):
             self.edit.set_caption(orig_s)
 
     def echo(self, orig_s):
-        s = orig_s.rstrip('\n')
-        if s:
+        got_string = not isinstance(orig_s, list)
+        s = orig_s
+        if got_string:
+            s = orig_s.rstrip('\n')
+        if True:
             if self.current_output is None:
-                self.current_output = urwid.Text(('output', s))
+                # XXX: hacky post-parsing of output here..
+                if not got_string:
+                    self.current_output = orig_s
+                else: 
+                    self.current_output = urwid.Text(('output', s))
                 if self.edit is None:
                     self.listbox.body.append(self.current_output)
                     # Focus the widget we just added to force the
@@ -1051,9 +1081,14 @@ class URWIDRepl(repl.Repl):
                     self.listbox.set_focus(len(self.listbox.body) - 1)
             else:
                 # XXX this assumes this all has "output" markup applied.
-                self.current_output.set_text(
-                    ('output', self.current_output.text + s))
-        if orig_s.endswith('\n'):
+                if got_string:
+                    self.current_output.set_text(
+                            ('output', self.current_output.text + s))
+                else:
+                    self.current_output.set_text(
+                            [('output', self.current_output.text)] + s)
+
+        if got_string and orig_s.endswith('\n'):
             self.current_output = None
 
         # If we hit this repeatedly in a loop the redraw is rather
@@ -1390,9 +1425,10 @@ class URWIDRepl(repl.Repl):
         return b
     
     def ipython_process_msgs(self):
-        b = ['\nIPY msgs']
-        status_prompt_out = 'ipython: Out[%(line)d]:' 
-        status_prompt_in = 'ipython: In [%(line)d]:' 
+        #b = ['\nIPY msgs']
+        b = []
+        status_prompt_out = 'Out[%(line)d]: ' 
+        status_prompt_in = 'In [%(line)d]: ' 
         msgs = self.kc.iopub_channel.get_msgs()
         for m in msgs:
             #db.append(str(m).splitlines())
@@ -1405,18 +1441,17 @@ class URWIDRepl(repl.Repl):
                 continue
             header = m['header']['msg_type']
             if header == 'status':
-                #self.ipython_execution_count = m['content']['execution_count']
                 continue
             elif header == 'stream':
                 # TODO: alllow for distinguishing between stdout and stderr (using
                 # custom syntax markers in the vim-ipython buffer perhaps), or by
                 # also echoing the message to the status bar
                 s = strip_color_escapes(m['content']['data'])
-                self.echo('ipython stream' + s)
+                #self.echod('ipython stream' + s)
             elif header == 'pyout':
-                s = status_prompt_out % {'line': m['content']['execution_count']}
-                s += m['content']['data']['text/plain']
-                self.echo('ipython' + s)
+                s = [('error', status_prompt_out % {'line':
+                    m['content']['execution_count']})]
+                s += [('output', m['content']['data']['text/plain'])]
             elif header == 'display_data':
                 # TODO: handle other display data types (HMTL? images?)
                 s += m['content']['data']['text/plain']
@@ -1425,27 +1460,39 @@ class URWIDRepl(repl.Repl):
                 # %doctest_mode is on. In the future, IPython will send the
                 # execution_count on subchannel, so this will need to be updated
                 # once that happens
+                # TODO: ignore if we're the ones who sent this, since that's
+                # already been typed out by the user and is still on the
+                # screen.
                 line_number = m['content'].get('execution_count', 0)
-                #XXX: ignore these for now, assume we've typed them
-                prompt = status_prompt_in % {'line': line_number}
-                s = prompt
-                # add a continuation line (with trailing spaces if the prompt has them)
-                dots = '.' * len(prompt.rstrip())
-                dots += prompt[len(prompt.rstrip()):]
-                s += m['content']['code'].rstrip().replace('\n', '\n' + dots)
+                if line_number != self.ipy_execution_count:
+                    #XXX: ignore these for now, assume we've typed them
+                    prompt = status_prompt_in % {'line': line_number}
+                    s = prompt
+                    # add a continuation line (with trailing spaces if the prompt has them)
+                    dots = '.' * len(prompt.rstrip())
+                    dots += prompt[len(prompt.rstrip()):]
+                    s += m['content']['code'].rstrip().replace('\n', '\n' + dots)
+                # TODO - recolorize output here
+                # call on_input_change for the right lines
+                #tokens = self.tokenize(code, False)
+                #edit.set_edit_markup(list(format_tokens(tokens)))
+            if 'execution_count' in m['content']:
+                self.ipy_execution_count = m['content']['execution_count']
+
             elif header == 'pyerr':
                 c = m['content']
                 s = "\n".join(map(strip_color_escapes,c['traceback']))
                 s += c['ename'] + ":" + c['evalue']
-            else:
-                s = 'unknown header: ' + header
 
-            if s.find('\n') == -1:
+            if isinstance(s, list):
+                b.extend(s+[('output','\n.'),])
+            elif s.find('\n') == -1:
                 b.append(s)
             else:
-                b.append(s.splitlines())
-            update_occured = True
-            return b
+                b.extend(s.splitlines())
+            self.echo(s)
+        return b
+
     def push(self, s, insert_into_history=True):
         # Restore the original SIGINT handler. This is needed to be able
         # to break out of infinite loops. If the interpreter itself
@@ -1456,6 +1503,8 @@ class URWIDRepl(repl.Repl):
         try:
             msg_id = self.send_ipython(s)
             ret_msg = self.ipython_get_child_msg(msg_id)
+            if 'execution_count' in ret_msg['content']:
+                self.ipy_execution_count = ret_msg['content']['execution_count']
             #self.echod('\n shell: ' + str(ret_msg['content']))
             #self.send_ipython("###retmsg " + str(ret_msg))
             #self.send_ipython("###retmsg " + str(returned))
@@ -1513,7 +1562,7 @@ class URWIDRepl(repl.Repl):
         # ps1 is getting loaded from. If anyone wants to make
         # non-ascii prompts work feel free to fix this.
         if not more:
-            caption = ('prompt', self.ps1.decode('ascii'))
+            caption = ('comment', self.ipy_ps1.decode('ascii'))
             self.stdout_hist += self.ps1
         else:
             caption = ('prompt_more', self.ps2.decode('ascii'))
@@ -1534,9 +1583,15 @@ class URWIDRepl(repl.Repl):
     def on_input_change(self, edit, text):
         # TODO: we get very confused here if "text" contains newlines,
         # so we cannot put our edit widget in multiline mode yet.
-        # That is probably fixable...
+        # That is probably fixable... !!!!! ARGH!!!
+        # Yes, fix this -pi
+        #if not edit.startswith(self.ipy_ps1):
+        #edit.set_caption(self.ipy_ps1)
         tokens = self.tokenize(text, False)
-        edit.set_edit_markup(list(format_tokens(tokens)))
+        #self.debug_docstring = str(list(format_tokens(tokens)))
+        ipy_tok = [('token', u''), ('number', self.ipy_ps1)]
+
+        edit.set_edit_markup(ipy_tok + list(format_tokens(tokens)))
         if not self._completion_update_suppressed:
             # If we call this synchronously the get_edit_text() in repl.cw
             # still returns the old text...
