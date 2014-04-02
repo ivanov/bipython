@@ -112,8 +112,8 @@ def bipy_argspec(func):
             return None
     return getargspec(func, f)
 """
-hack_path = '/home/pi/code/workspace/bpython/bpython/'
-with open(hack_path+'inspection_standalone.py') as f:
+hack_path = os.path.dirname(__file__)
+with open(os.path.join(hack_path, 'inspection_standalone.py')) as f:
     bipy_func = f.read() + bipy_func
 
 
@@ -924,128 +924,6 @@ class URWIDRepl(repl.Repl):
         #    return bool(self.matches)
         #return False
         #cs = self.current_string()
-
-    #def _complete(self, tab=False):
-    #    """Construct a full list of possible completions and construct and
-    #    display them in a window. Also check if there's an available argspec
-    #    (via the inspect module) and bang that on top of the completions too.
-    #    The return value is whether the list_win is visible or not."""
-
-    #    self.docstring = None
-    #    if not self.get_args():
-    #        self.argspec = None
-    #    elif self.current_func is not None:
-    #        try:
-    #            #self.docstring = pydoc.getdoc(self.current_func)
-    #            #XXX insert get_doc logic here
-    #            level = 0
-    #            #self.send_ipython('#got to func completion', self.current_func)
-    #            func = self.current_func
-    #            msg_id = self.kc.shell_channel.object_info(func, level)
-    #            doc = self.ipython_get_doc_msg(msg_id)
-    #            if len(doc) == 0:
-    #                doc = [' empty, like my soul' ] 
-    #            self.docstring = "\nipython: ".join(doc)
-    #            #self.send_ipython('#got to func completion')
-    #        except IndexError:
-    #            self.docstring = None
-    #        else:
-    #            # pydoc.getdoc() returns an empty string if no
-    #            # docstring was found
-    #            if not self.docstring:
-    #                self.docstring = None
-
-    #    cw = self.cw()
-    #    cs = self.current_string()
-
-    #    # XXX: ipython completion
-    #    # self.send_ipython("# completion " + " ".join([cw or '', cs]))
-
-    #    if not cw:
-    #        self.matches = []
-    #        self.matches_iter.update()
-    #    if not (cw or cs):
-    #        return bool(self.argspec)
-
-    #    if cs and tab:
-    #        # Filename completion
-    #        self.matches = list()
-    #        username = cs.split(os.path.sep, 1)[0]
-    #        user_dir = os.path.expanduser(username)
-    #        for filename in glob(os.path.expanduser(cs + '*')):
-    #            if os.path.isdir(filename):
-    #                filename += os.path.sep
-    #            if cs.startswith('~'):
-    #                filename = username + filename[len(user_dir):]
-    #            self.matches.append(filename)
-
-    #        # get ipython matches
-    #        self.matches.append('greetings!')
-    #        self.matches.append(self.ipython_complete(cw, cs))
-    #        self.matches_iter.update(cs, self.matches)
-    #        return bool(self.matches)
-    #    elif cs:
-    #        # Do not provide suggestions inside strings, as one cannot tab
-    #        # them so they would be really confusing.
-    #        self.matches_iter.update()
-    #        return False
-
-    #    # Check for import completion
-    #    e = False
-    #    matches = importcompletion.complete(self.current_line(), cw)
-    #    if matches is not None and not matches:
-    #        self.matches = []
-    #        self.matches_iter.update()
-    #        return False
-
-    #    if matches is None:
-    #        # Nope, no import, continue with normal completion
-    #        try:
-    #            self.completer.complete(cw, 0)
-    #        except Exception:
-    #            # This sucks, but it's either that or list all the exceptions that could
-    #            # possibly be raised here, so if anyone wants to do that, feel free to send me
-    #            # a patch. XXX: Make sure you raise here if you're debugging the completion
-    #            # stuff !
-    #            e = True
-    #        else:
-    #            matches = self.completer.matches
-    #            if (self.config.complete_magic_methods and self.buffer and
-    #                self.buffer[0].startswith("class ") and
-    #                self.current_line().lstrip().startswith("def ")):
-    #                matches.extend(name for name in self.config.magic_methods
-    #                               if name.startswith(cw))
-
-    #    if not e and self.argspec:
-    #        matches.extend(name + '=' for name in self.argspec[1][0]
-    #                       if isinstance(name, basestring) and name.startswith(cw))
-    #        if py3:
-    #            matches.extend(name + '=' for name in self.argspec[1][4]
-    #                           if name.startswith(cw))
-
-    #    # unless the first character is a _ filter out all attributes starting with a _
-    #    if not e and not cw.split('.')[-1].startswith('_'):
-    #        matches = [match for match in matches
-    #                   if not match.split('.')[-1].startswith('_')]
-
-    #    if e or not matches:
-    #        self.matches = []
-    #        self.matches_iter.update()
-    #        if not self.argspec:
-    #            return False
-    #    else:
-    #        # remove duplicates
-    #        self.matches = sorted(set(matches))
-
-
-    #    if len(self.matches) == 1 and not self.config.auto_display_list:
-    #        self.list_win_visible = True
-    #        self.tab()
-    #        return False
-
-    #    self.matches_iter.update(cw, self.matches)
-    #    return True
-
 
     # Subclasses of Repl need to implement echo, current_line, cw
     def echod(self, orig_s):
