@@ -748,15 +748,25 @@ class URWIDRepl(repl.Repl):
         #XXX: backwards compatibility for IPython < 1.0
         if not hasattr(kc, 'iopub_channel'):
             kc.iopub_channel = kc.sub_channel
-        print km
-        self.send_ipython('# bpython connected')
         self.km = km
         self.kc = kc
-        # TODO: hide this from user_ns
-        self.ipython_set_pid()
+        print km
+        msg_id = self.send_ipython('# bpython connected')
+        try:
+            child = self.ipython_get_child_msg(msg_id)
+        except Empty:
+            import sys
+            sys.stderr.write("\n")
+            sys.stderr.write("""Unable to connect to IPython:
+            Either it's busy executing, or you haven't started one. 
+            use `ipython console` in another shell first, or open a
+            new IPython Notebook""")
+            sys.exit(1)
+
         self.send_ipython(bipy_func, silent=True)
         # TODO: get a proper history navigator
         #self.rl_history = IPythonHistory(kc)
+        self.ipython_set_pid()
 
         return km
     
@@ -1875,3 +1885,4 @@ def load_urwid_command_map(config):
 """
 if __name__ == '__main__':
     sys.exit(main())
+

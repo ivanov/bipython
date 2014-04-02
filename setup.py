@@ -38,12 +38,12 @@ if have_setuptools:
     setup_kwargs['install_requires'] = [
         'Pygments >= 1.6',
         'urwid >= 1.1.1',
-        'bipython >= 0.12',
+        'bpython >= 0.12',
         'ipython >= 0.12',
         ]
 
 if __name__ == '__main__':
-    with open('README.md').read() as f:
+    with open('README.md') as f:
         descr = f.read()
     descr = descr[:descr.find('TODO')]
     setup(
