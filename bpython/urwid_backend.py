@@ -1645,9 +1645,9 @@ class URWIDRepl(repl.Repl):
             else:
                 cw = self.matches_iter.current_word
 
-            self.edit.set_edit_text( text[:-len(cw)])
 
             if self.matches:
+                self.edit.set_edit_text(text[:-len(cw)])
                 if self.matches_iter:
                     self.edit.set_edit_text(
                             text[:-len(self.matches_iter.current())])

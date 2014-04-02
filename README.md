@@ -142,7 +142,7 @@ TODO / ISSUES:
 
     [x] MUSTFIX: tab-completion of magics.
 
-        [ ] fix introduced regression: tab completing on something that has no
+        [x] fix introduced regression: tab completing on something that has no
             matched will delete the match
 
     [ ] figure out how much bpython i need.
