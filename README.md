@@ -9,21 +9,83 @@ the boldly indiscriminate python interpreter
 
 *"...because you shouldn't have to choose."*
 
+PROLOGUE
+--------
 
-Right now, you'll need to have a running ipython kernel before running bipython.
+    Two interpreters, both alike in dignity,
+    In fair Pythona, where we lay our scene,
+    From ancient grudge break to new mutiny,
+    Where civil code makes git commits unclean.
+    From forth the fatal loins of these two foes
+    A newer kind of strager's given life;
+    Whose misadventured piteous overthrows
+    Doth with its birth bury its parents' strife.
+
+ACT I
+------
+
+*Enter `bpython` and `ipython`*
+
+[`bpython`](http://bpython-interpreter.org/)
+
+    I'm an awesome terminal-based Python interpreter.  I have features like
+    inline syntax highlighting and auto-completion as you type, and I even
+    automatically shows you a little tooltip with a docstring and parameter list
+    as soon as you hit `(` to make the function call!
+
+[`ipython`](http://ipython.org/): 
+    
+    I'm an awesome *suite* of interactive computing ideas that work together.
+    For millenia, I've given you tab-completion and object introspection via
+    `obj?` instead of `help(obj)`. I also have sweet shell integration, so you
+    can `files = !ls` and 
+
+    More recently, I've decoupled the REPL into clients and kernels, allowing
+    multiple clients to interact with a kernel
+
+    One popular client is the IPython Notebook - which allows you to write code
+    and propse using a web browser as a client, performing computation and
+    getting results back inline. 
+
+
+*Enter `bipython`*
+
+[`bipython`](http://bipython.org/): By your powers combined... I am `bipython`!
+
+
+*Exeunt*
+
+
+Getting Started
+----------------
+
+    pip install -U bipython
+
+You will need at least IPython with ZeroMQ support, urwid, and bpython...  
+`pip install -U ipython[zmq] urwid bpython`
+
+For now, you'll need to have a running ipython kernel before running bipython.
 You can do this by either opening a notebook, or `ipython console`.
 
+
+The power is yours!
 
 TODO / ISSUES:
 --------------
 
-    [ ] multiline input not yet supported - limitation inherited from bpython's
+    [ ] MUSTFIX: multiline input not yet supported - limitation inherited from bpython's
         urwid code, which I found out too late.
 
         [ ] multiline input will be a bit tricky, will need to hold off and not
             submit to ipython until the multiline is completed. 
 
         [ ] would also be nice to get local completion in the case of long input cells
+
+    [ ] MUSTFIX: up/down arrow keys for history don't work yet.
+
+        [ ] maybe i should hook into interp and just turn that into a no-op,
+            that way i can keep the current (cheap) history as is?
+
 
     [ ] see if I can put in workaround for stable bpython 
         - v0.12 works, so says Anthony
@@ -70,15 +132,13 @@ TODO / ISSUES:
     [ ] LOW: make ctrl-w delete word - with '.' being a word separator
 
     [ ] how do i keep the completion tooltip from going on top of wherever i'm
-        typing - seems like it's hardcoded to do that after going half-way down the
-        screen
+        typing - seems like it's hardcoded to do that after going half-way down
+        the screen
+
         [ ] alt: use escape to remove it?
 
     [ ] colorize / pygemntize the pyin results - damn it - that requires hooking
         into the lexer again...
-
-    [ ] maybe i should hook into interp and just turn that into a no-op, that
-        way i can keep the current (cheap) history as is?
 
     [ ] setup sigalarm or setup eventloop to check for new messages' arrival
         - we already do it on typing, i think...
@@ -106,8 +166,6 @@ TODO / ISSUES:
     [ ] start its own kernel if --existing flag not given
 
     [ ] gracefully handle input/output newlines when we didn't initiate it.
-
-    [ ] MUSTFIX: up/down arrow keys for history don't work yet.
 
     [ ] obj? doesn't show up in bipython - intercept it to be a oinfo req like in
         vim-ipython - yes. do that.
