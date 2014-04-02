@@ -32,7 +32,7 @@ setup_kwargs = {
         "Topic :: Utilities",
         ],
     "zip_safe": False,
-    "data_files": [("", ['LICENSE', 'README.md', 'desc.rst']),],
+    "data_files": [("", ['LICENSE', 'README.md', 'README.rst']),],
     }
 
 if have_setuptools:
@@ -44,9 +44,8 @@ if have_setuptools:
         ]
 
 if __name__ == '__main__':
-    with open('desc.rst') as f:
+    with open('README.rst') as f:
         descr = f.read()
-    descr = descr[:descr.find('TODO')]
     setup(
         name='bipython',
         packages=['bipython'],
