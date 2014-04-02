@@ -1451,7 +1451,20 @@ class URWIDRepl(repl.Repl):
             # ctrl+c to kill buggy code running inside bpython is safe.
             self.keyboard_interrupt()
         except Empty:
-            self.ipython_process_msgs()
+            while True:
+                # let's wait until user presses key interrupt or we get some
+                # results
+                try:
+                    self.ipython_process_msgs()
+                    ret_msg = self.ipython_get_child_msg(msg_id)
+                    if 'execution_count' in ret_msg['content']:
+                        self.ipy_execution_count = ret_msg['content']['execution_count']
+                except Empty:
+                    pass
+                except KeyboardInterrupt:
+                    break
+                else:
+                    break
         finally:
             signal.signal(signal.SIGINT, orig_handler)
 
