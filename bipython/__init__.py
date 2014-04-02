@@ -760,7 +760,7 @@ class URWIDRepl(repl.Repl):
             sys.stderr.write("""Unable to connect to IPython:
             Either it's busy executing, or you haven't started one. 
             use `ipython console` in another shell first, or open a
-            new IPython Notebook""")
+            new IPython Notebook\n""")
             sys.exit(1)
 
         self.send_ipython(bipy_func, silent=True)
@@ -1653,21 +1653,31 @@ class URWIDRepl(repl.Repl):
 def main(args=None, locals_=None, banner=None):
     translations.init()
 
+    import argparse
+    parser = argparse.ArgumentParser(
+            description='the boldly indiscriminate Python interpreter')
+    parser.add_argument( '-v','--version', action='version', 
+            version='%(prog)s 0.1.0')
+    
+    args = parser.parse_args()
+
+    # ok, it's not nice, i'm hiding all of these params, but LTS.
+    #
     # TODO: maybe support displays other than raw_display?
     config, options, exec_args = bpargs.parse(args, (
             'Urwid options', None, [
                 Option('--twisted', '-T', action='store_true',
-                       help=_('Run twisted reactor.')),
+                       help=('Run twisted reactor.')),
                 Option('--reactor', '-r',
-                       help=_('Select specific reactor (see --help-reactors). '
+                       help=('Select specific reactor (see --help-reactors). '
                        'Implies --twisted.')),
                 Option('--help-reactors', action='store_true',
                        help=_('List available reactors for -r.')),
                 Option('--plugin', '-p',
-                       help=_('twistd plugin to run (use twistd for a list). '
+                       help=('twistd plugin to run (use twistd for a list). '
                        'Use "--" to pass further options to the plugin.')),
                 Option('--server', '-s', type='int',
-                       help=_('Port to run an eval server on (forces Twisted).')),
+                       help=('Port to run an eval server on (forces Twisted).')),
                 ]))
 
     if options.help_reactors:
