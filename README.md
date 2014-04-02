@@ -1,3 +1,5 @@
+![bipython logo](http://bipython.org/bipython_logo.png)
+
 bipython
 =========
 
