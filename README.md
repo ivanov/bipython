@@ -102,6 +102,8 @@ TODO / KNOWN ISSUES:
             that way i can keep the current (cheap) history as is?
 
 
+    [ ] MUSTFIX: Python 3 compatability (all of my dependencies meet them)
+
     [ ] see if I can put in workaround for stable bpython 
         - v0.12 works, so says Anthony
         - can I also make 0.11-1.1 work? (that's what Ubuntu 13.10 shipped)
