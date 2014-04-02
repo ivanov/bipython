@@ -66,25 +66,28 @@ ACT I
 *Exeunt*
 
 
-Getting Started
-----------------
+The Power is Yours!
+-------------------
 
-    pip install -U bipython
+    pip install  bipython
+    easy_install bipython
 
-You will need at least IPython with ZeroMQ support, urwid, and bpython...  
-`pip install -U ipython[zmq] urwid bpython`
+`bipython` requires ipython, pyzmq, bpython, and urwid.
 
-For now, you'll need to have a running ipython kernel before running bipython.
-You can do this by either opening a notebook, or `ipython console`.
+For now, you'll need to have a running ipython kernel before running `bipython`.
+You can do this by either opening a notebook or running `ipython console`. 
+It won't always be like this, I'll fix it soon.
+
+After that, just run `bipython` and enjoy the ride. 
+
+Copyright (c) 2014, [Paul Ivanov](http://pirsquared.org/blog)
 
 
-The power is yours!
-
-TODO / ISSUES:
---------------
+TODO / KNOWN ISSUES:
+-------------------
 
     [ ] MUSTFIX: multiline input not yet supported - limitation inherited from bpython's
-        urwid code, which I found out too late.
+        urwid code, which I found out too late. (4am on April 1st)
 
         [ ] multiline input will be a bit tricky, will need to hold off and not
             submit to ipython until the multiline is completed. 
@@ -265,3 +268,5 @@ TODO / ISSUES:
     [ ] ask bob to be added to related projects on bpython-interpreter.org
 
     [ ] make screencast demo
+
+    [ ] process command line argument to connect to the right kernel
