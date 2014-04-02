@@ -28,6 +28,7 @@ setup_kwargs = {
         "Intended Audience :: Developers",
         "Programming Language :: Python",
         "Operating System :: OS Independent",
+        "Topic :: Software Development :: Interpreters",
         "Topic :: Utilities",
         ],
     "zip_safe": False,
