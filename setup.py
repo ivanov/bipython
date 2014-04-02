@@ -40,6 +40,7 @@ if have_setuptools:
         'Pygments >= 1.6',
         'urwid >= 1.1.1',
         'bpython >= 0.12',
+        'pyzmq >= 2.1.11',
         'ipython >= 1.0',
         ]
 
