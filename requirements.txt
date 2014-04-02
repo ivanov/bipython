@@ -1,0 +1,5 @@
+ipython
+pyzmq
+bpython
+pygments
+urwid
