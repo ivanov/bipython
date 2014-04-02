@@ -13,6 +13,15 @@ You can do this by either opening a notebook, or `ipython console`.
 
 TODO / ISSUES:
 
+[ ] multiline input not yet supported - limitation inherited from bpython's
+    urwid code, which I found out too late.
+
+    [ ] multiline input will be a bit trick, will need to hold off and not
+        submit to ipython until the multiline is completed. 
+
+    [ ] would also be nice to get local completion in the case of long input cells
+
+
 [ ] need to release today!
 
 [x] got monospaced theme picked out for pelican
@@ -146,3 +155,20 @@ related projects:
 [x] looks like if there was output already on submission, stuff gets printed
     there.
 
+[x] process io_pub message on every completion to put them into the bpython
+    user interface.
+
+
+[ ] getting the argspec as bpython does it requires pulling in all of
+    bpython/introspection.py - which is a bit much just to get the __init__
+    handling. Let's just do the simple thing.
+
+    let's remember to document that we're not going to use the AttrCleaner
+
+    damn, doesn't look like that's gonna work. ok, let's port it all over to be
+    standalone (so where ipython kernel is running doesn't need bpython)
+
+    [ ] also - will need to think about how to gracefully handle non-python
+        kernels with this.
+
+[ ] syntax highlighting for ipython magics - otherwise PythonLexer will choke
