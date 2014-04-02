@@ -12,7 +12,7 @@ if sys.version_info[0] >= 3:
     import warnings
     warnings.warn("bipython might not work in Python 3, I'll get to it soon")
 
-VERSION = "0.1"
+VERSION = "0.1.1"
 
 setup_kwargs = {
     "version": VERSION + '.0',
@@ -40,7 +40,7 @@ if have_setuptools:
         'Pygments >= 1.6',
         'urwid >= 1.1.1',
         'bpython >= 0.12',
-        'ipython >= 0.12',
+        'ipython >= 1.0',
         ]
 
 if __name__ == '__main__':
