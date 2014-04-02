@@ -1338,8 +1338,16 @@ class URWIDRepl(repl.Repl):
         if not content['found']:
             return b
 
-        for field in ['type_name','base_class','string_form','namespace',
-                'file','length','definition','source','docstring']:
+        # XXX: in vim-ipython I do all of these:
+        #
+        #    for field in ['type_name','base_class','string_form','namespace',
+        #        'file','length','definition','source','docstring']:
+        #
+        #   But with argspec inspection, that seems too verbose.
+
+        b = [content.get('docstring',''), '']
+        for field in ['base_class','string_form','namespace',
+            'file','length','definition','source']:
             c = content.get(field,None)
             if c:
                 if field in ['definition']:

@@ -20,23 +20,26 @@ TODO / ISSUES:
     [ ] multiline input not yet supported - limitation inherited from bpython's
         urwid code, which I found out too late.
 
-        [ ] multiline input will be a bit trick, will need to hold off and not
+        [ ] multiline input will be a bit tricky, will need to hold off and not
             submit to ipython until the multiline is completed. 
 
         [ ] would also be nice to get local completion in the case of long input cells
 
-    [ ] see if I can put in workaround for stable bipython
+    [ ] see if I can put in workaround for stable bpython 
+        - v0.12 works, so says Anthony
+        - can I also make 0.11-1.1 work? (that's what Ubuntu 13.10 shipped)
 
     [ ] need to release today!
 
     [x] got monospaced theme picked out for pelican
+
     [ ] insert "fork me on github" overlay there.
 
     [x] colorize in and out prompts
 
     [ ] re-colorize the blue docstring stuff - make it magenta
 
-    [ ] only show docstring in tooltip
+    [x] only show docstring in tooltip
 
     [x] change prompt
 
@@ -137,7 +140,10 @@ TODO / ISSUES:
 
     [ ] TODO: ansi color escape handling
 
-    [ ] MUSTFIX: tab-completion of magics.
+    [x] MUSTFIX: tab-completion of magics.
+
+        [ ] fix introduced regression: tab completing on something that has no
+            matched will delete the match
 
     [ ] figure out how much bpython i need.
 
