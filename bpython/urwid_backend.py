@@ -677,7 +677,6 @@ class URWIDRepl(repl.Repl):
         load_urwid_command_map(config)
         self.ipython = self.connect_ipython_kernel()
         self.ipy_execution_count = '0'
-        self.ipy_pid = None
         self.debug_docstring = ''
     
     @property
@@ -781,6 +780,7 @@ class URWIDRepl(repl.Repl):
         self.km = km
         self.kc = kc
         # TODO: hide this from user_ns
+        self.ipython_set_pid()
         self.send_ipython(bipy_func, silent=True)
         # TODO: get a proper history navigator
         #self.rl_history = IPythonHistory(kc)
@@ -1233,14 +1233,16 @@ class URWIDRepl(repl.Repl):
         try:
             child = self.ipython_get_child_msg(msg_id)
         except Empty:
-            self.echo("no reply from IPython kernel")
+            #self.echo("no reply from IPython kernel")
+            self.ipy_pid = None
             return
         try:
             pid = int(child['content']['user_variables']['_pid'])
         except TypeError: # change in IPython 1.0.dev moved this out
             pid = int(child['content']['user_variables']['_pid']['data']['text/plain'])
         except KeyError: # change in IPython 1.0.dev moved this out
-            self.echo("Could not get PID information, kernel not running Python?")
+            #self.echo("Could not get PID information, kernel not running Python?")
+            pass
         self.ipy_pid = pid
 
     def ipython_interrupt_kernel_hack(self, signal_to_send=None):
@@ -1462,6 +1464,7 @@ class URWIDRepl(repl.Repl):
                 except Empty:
                     pass
                 except KeyboardInterrupt:
+                    self.keyboard_interrupt()
                     break
                 else:
                     break
