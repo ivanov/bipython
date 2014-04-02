@@ -107,10 +107,10 @@ TODO / ISSUES:
 
     [ ] gracefully handle input/output newlines when we didn't initiate it.
 
-    [ ] up/down arrow keys for history don't work yet.
+    [ ] MUSTFIX: up/down arrow keys for history don't work yet.
 
     [ ] obj? doesn't show up in bipython - intercept it to be a oinfo req like in
-        vim-ipython
+        vim-ipython - yes. do that.
 
     [x] make logo
 
@@ -144,6 +144,11 @@ TODO / ISSUES:
 
         [x] fix introduced regression: tab completing on something that has no
             matched will delete the match
+
+        [x] tab-completion should trigger docstring tooltip update
+
+        [ ] another bug: `xdel<tab>^h<tab>`
+            - first tab expand %, second one adds an extra % to the front
 
     [ ] figure out how much bpython i need.
 

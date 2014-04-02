@@ -874,40 +874,12 @@ class URWIDRepl(repl.Repl):
             self.argspec = None
         #elif self.current_func is not None:
         if self.current_func is not None:
-            try:
-                #self.docstring = pydoc.getdoc(self.current_func)
-                #XXX insert get_doc logic here
-                level = 0
-                #self.send_ipython('#got to func completion', self.current_func)
-                func = self.current_func
-                msg_id = self.kc.shell_channel.object_info(func, level)
-                doc = self.ipython_get_doc_msg(msg_id)
-                if len(doc) == 0:
-                    doc = [' empty, like my soul' ] 
-                self.docstring = "\n".join(doc)
-                #self.send_ipython('#got to func completion')
-            except IndexError:
-                self.docstring = None
-            else:
-                # pydoc.getdoc() returns an empty string if no
-                # docstring was found
-                if not self.docstring:
-                    self.docstring = None
+            self.ipython_get_doc(self.current_func)
 
         pos = self.edit.edit_pos
         text = self.edit.get_edit_text()
 
         cw = self.cw() or ''
-        
-        #if text.find('(') != -1:
-        #    # XXX: primitive heuristic, good enough for testing
-        #    #self.echod('found a paren ' + (self.argspec or ''));
-        #    level =0
-        #    msg_id = self.kc.shell_channel.object_info(text[:text.find('(')], level)
-        #    doc = self.ipython_get_doc_msg(msg_id)
-        #    if len(doc) == 0:
-        #        doc = [text[:text.find('(')] + ' empty, too, like my soul' ] 
-        #    self.docstring = "\nipython: ".join(doc)
 
         if not cw and not tab:
             # don't trigger automatic completion on empty lines
@@ -918,7 +890,7 @@ class URWIDRepl(repl.Repl):
         #    self.docstring = 'yak yak yak!'
         self.matches = self.ipython_complete(cw, text, pos)
         self.matches_iter.update(cw, self.matches)
-        return bool(self.matches) #or self.docstring.find('ipython') != -1
+        return bool(self.matches) or self.docstring
 
         #if tab:
         #    return bool(self.matches)
@@ -1133,7 +1105,13 @@ class URWIDRepl(repl.Repl):
         else:
             self.frame.body = self.listbox
             self.tooltip.grid = None
+        #self._populate_docstring(pop=False)
 
+    def _populate_docstring(self, pop=False):
+        "Make visible the docstring"
+        widget_list = self.tooltip.body
+        if pop:
+            widget_list.pop()
         if self.docstring:
             # TODO: use self.format_docstring? needs a width/height...
             docstring = self.docstring
@@ -1325,7 +1303,26 @@ class URWIDRepl(repl.Repl):
                 #self.echod('\n\tshell_channel (skipping): ' + str(m['content']))
                 pass
         return m
-    
+   
+    def ipython_get_doc(self, func):
+        #self.debug_docstring = 'doc called for ' + func
+        #self.stdout_hist += "\nDEBUG: doc called for " + func
+        #self.send_ipython('# ' + self.debug_docstring)
+        pop = self.docstring is not None
+        try:
+            level = 0
+            msg_id = self.kc.shell_channel.object_info(func, level)
+            doc = self.ipython_get_doc_msg(msg_id)
+            if len(doc) == 0:
+                doc = ['']
+            self.docstring = "\n".join(doc)
+        except IndexError:
+            self.docstring = None
+        else:
+            if not self.docstring:
+                self.docstring = None
+        self._populate_docstring( pop=pop)
+
     def ipython_get_doc_msg(self, msg_id):
         n = 13 # longest field name (empirically)
         b=[]
@@ -1344,8 +1341,12 @@ class URWIDRepl(repl.Repl):
         #        'file','length','definition','source','docstring']:
         #
         #   But with argspec inspection, that seems too verbose.
-
-        b = [content.get('docstring',''), '']
+        #
+        ds = content.get('docstring','')
+        if ds == '<no docstring>':
+            b = ['']
+        else:
+            b = [ ds, '' ] 
         for field in ['base_class','string_form','namespace',
             'file','length','definition','source']:
             c = content.get(field,None)
@@ -1661,6 +1662,7 @@ class URWIDRepl(repl.Repl):
                     if self.tooltip.grid:
                         self.tooltip.grid.set_focus(self.matches_iter.index)
                     self.edit.insert_text(current_match)
+                self.ipython_get_doc(current_match)
             return True
         finally:
             self._completion_update_suppressed = False
