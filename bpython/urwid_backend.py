@@ -1264,13 +1264,14 @@ class URWIDRepl(repl.Repl):
         if not signal_to_send:
             signal_to_send = signal.SIGINT
 
-        self.echo("KeyboardInterrupt (sent to ipython: pid " +
-            "%i with signal %s)" % (pid, signal_to_send))
+        self.echo("\n(KeyboardInterrupt)") # (sent to ipython: pid " +
+            #"%i with signal %s)" % (pid, signal_to_send))
         try:
             os.kill(pid, int(signal_to_send))
         except OSError:
             self.echo("unable to kill pid %d" % pid)
             pid = None
+        self.ipython_process_msgs()
 
     def ipython_get_argspec(self, func):
         self.send_ipython('', silent=True,
@@ -1409,6 +1410,8 @@ class URWIDRepl(repl.Repl):
 
             elif header == 'pyerr':
                 c = m['content']
+                # XXX: when we learn how to parse color escapes for urwid to
+                # handle nicely, don't strip them on the next line
                 s = "\n".join(map(strip_color_escapes,c['traceback']))
                 s += c['ename'] + ":" + c['evalue']
 
@@ -1430,6 +1433,10 @@ class URWIDRepl(repl.Repl):
         # Pretty blindly adapted from bpython.cli
         try:
             msg_id = self.send_ipython(s)
+            if self.edit is not None:
+                self.edit.make_readonly()
+            self.buffer = []
+            self.edit = None
             ret_msg = self.ipython_get_child_msg(msg_id)
             if 'execution_count' in ret_msg['content']:
                 self.ipy_execution_count = ret_msg['content']['execution_count']
@@ -1453,9 +1460,10 @@ class URWIDRepl(repl.Repl):
             # ctrl+c to kill buggy code running inside bpython is safe.
             self.keyboard_interrupt()
         except Empty:
+            # let's wait until  Ctrl-C or we get some results
+            self.prompt(False)
             while True:
-                # let's wait until user presses key interrupt or we get some
-                # results
+                # we've submitted, so any pending output should go below
                 try:
                     self.ipython_process_msgs()
                     ret_msg = self.ipython_get_child_msg(msg_id)
@@ -1481,15 +1489,20 @@ class URWIDRepl(repl.Repl):
         if self.edit is not None:
             # XXX this is a lot of code, and I am not sure it is
             # actually enough code. Needs some testing.
+            #self.edit.insert_text('^C')
+            self.edit.set_edit_markup(('error','^C'))
             self.edit.make_readonly()
             self.edit = None
             self.buffer = []
-            self.echo('KeyboardInterrupt')
+            self.echo('\rKeyboardInterruptA')
             self.prompt(False)
         else:
             # I do not quite remember if this is reachable, but let's
             # be safe.
-            self.echo('KeyboardInterrupt')
+            self.echo('KeyboardInterruptB')
+
+        time.sleep(.5) # give the kill signal a chance to get processed
+        self.ipython_process_msgs()
 
     def prompt(self, more):
         # Clear current output here, or output resulting from the
