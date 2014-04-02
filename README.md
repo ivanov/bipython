@@ -12,14 +12,14 @@ the boldly indiscriminate python interpreter
 PROLOGUE
 --------
 
-    Two interpreters, both alike in dignity,
-    In fair Pythona, where we lay our scene,
-    From ancient grudge break to new mutiny,
-    Where civil code makes git commits unclean.
-    From forth the fatal loins of these two foes
-    A newer kind of strager's given life;
-    Whose misadventured piteous overthrows
-    Doth with its birth bury its parents' strife.
+   Two interpreters, both alike in dignity,  
+   In fair Pythona, where we lay our scene,  
+   From ancient grudge break to new mutiny,  
+   Where civil code makes git commits unclean.  
+   From forth the fatal loins of these two foes  
+   A newer kind of strager's given life;  
+   Whose misadventured piteous overthrows  
+   Doth with its birth bury its parents' strife.  
 
 ACT I
 ------
