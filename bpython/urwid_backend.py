@@ -1637,20 +1637,13 @@ class URWIDRepl(repl.Repl):
             else:
                 cw = self.matches_iter.current_word
 
-            b = os.path.commonprefix(self.matches)
-            if b:
-                insert = b[len(cw):]
-                self.edit.insert_text(insert)
-                expanded = bool(insert)
-                if expanded:
-                    self.matches_iter.update(b, self.matches)
-            else:
-                expanded = False
+            self.edit.set_edit_text( text[:-len(cw)])
 
-            if not expanded and self.matches:
+            if self.matches:
                 if self.matches_iter:
                     self.edit.set_edit_text(
-                        text[:-len(self.matches_iter.current())] + cw)
+                            text[:-len(self.matches_iter.current())])
+
                 if back:
                     current_match = self.matches_iter.previous()
                 else:
@@ -1659,7 +1652,7 @@ class URWIDRepl(repl.Repl):
                     self.overlay.tooltip_focus = True
                     if self.tooltip.grid:
                         self.tooltip.grid.set_focus(self.matches_iter.index)
-                    self.edit.insert_text(current_match[len(cw):])
+                    self.edit.insert_text(current_match)
             return True
         finally:
             self._completion_update_suppressed = False
