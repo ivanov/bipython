@@ -26,31 +26,40 @@ ACT I
 
 *Enter `bpython` and `ipython`*
 
-[`bpython`](http://bpython-interpreter.org/)
+[**`bpython`**](http://bpython-interpreter.org/)
 
-    I'm an awesome terminal-based Python interpreter.  I have features like
-    inline syntax highlighting and auto-completion as you type, and I even
-    automatically shows you a little tooltip with a docstring and parameter list
-    as soon as you hit `(` to make the function call!
+    I'm a fancy terminal-based interface to the Python interpreter.  I give you
+    inline syntax highlighting and auto-completion prompts as you type, and I'll 
+    even automatically show you a little tooltip with a docstring and parameter list
+    as soon as you hit `(` to make the function call, so you always know what you're
+    doing! I'm svelte and proud of it - I don't try to do all of the shenanigans that 
+    IPython does with the shell and the web, but the cool kids love my rewind feature
+    for demos. I strive to make interactive python coding a joy!
 
-[`ipython`](http://ipython.org/): 
+[**`ipython`**](http://ipython.org/)
     
     I'm an awesome *suite* of interactive computing ideas that work together.
     For millenia, I've given you tab-completion and object introspection via
-    `obj?` instead of `help(obj)`. I also have sweet shell integration, so you
-    can `files = !ls` and 
+    `obj?` instead of `help(obj)` in Python. I also have sweet shell features,
+    special magic commands (`%run`, `%timeit`, `%matplotlib`, etc.) and a 
+    history mechanism for both input (command history) and output (results 
+    caching).
 
     More recently, I've decoupled the REPL into clients and kernels, allowing
-    multiple clients to interact with a kernel
-
-    One popular client is the IPython Notebook - which allows you to write code
-    and propse using a web browser as a client, performing computation and
-    getting results back inline. 
-
+    them to run on independent of each other. One popular client is the 
+    IPython Notebook which allows you to write code and prose using a web 
+    browser, sending code to the kernel for execution and getting rich media 
+    results back inline. The decoupling of clients and kernels also allows 
+    multiple clients to interact with the same kernel, so you can hook-up to 
+    that same running kernel from the terminal. The terminal workflow makes 
+    more sense for some things, but my user interface there isn't as polished
+    as bpython's.
 
 *Enter `bipython`*
 
-[`bipython`](http://bipython.org/): By your powers combined... I am `bipython`!
+[**`bipython`**](http://bipython.org/)
+
+    By your powers combined... I am `bipython`!
 
 
 *Exeunt*
