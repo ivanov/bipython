@@ -49,7 +49,7 @@ if __name__ == '__main__':
     descr = descr[:descr.find('TODO')]
     setup(
         name='bipython',
-        py_modules=['bipython'],
+        packages=['bipython'],
         entry_points={'console_scripts': ['bipython = bipython:main',],},
         long_description=descr,
         **setup_kwargs
