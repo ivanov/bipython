@@ -1659,7 +1659,7 @@ def main(args=None, locals_=None, banner=None):
     parser.add_argument( '-v','--version', action='version', 
             version='%(prog)s 0.1.0')
     
-    args = parser.parse_args()
+    parser.parse_known_args()
 
     # ok, it's not nice, i'm hiding all of these params, but LTS.
     #
@@ -1667,17 +1667,17 @@ def main(args=None, locals_=None, banner=None):
     config, options, exec_args = bpargs.parse(args, (
             'Urwid options', None, [
                 Option('--twisted', '-T', action='store_true',
-                       help=('Run twisted reactor.')),
+                       help=_('Run twisted reactor.')),
                 Option('--reactor', '-r',
-                       help=('Select specific reactor (see --help-reactors). '
+                       help=_('Select specific reactor (see --help-reactors). '
                        'Implies --twisted.')),
                 Option('--help-reactors', action='store_true',
                        help=_('List available reactors for -r.')),
                 Option('--plugin', '-p',
-                       help=('twistd plugin to run (use twistd for a list). '
+                       help=_('twistd plugin to run (use twistd for a list). '
                        'Use "--" to pass further options to the plugin.')),
                 Option('--server', '-s', type='int',
-                       help=('Port to run an eval server on (forces Twisted).')),
+                       help=_('Port to run an eval server on (forces Twisted).')),
                 ]))
 
     if options.help_reactors:
