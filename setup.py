@@ -12,10 +12,10 @@ if sys.version_info[0] >= 3:
     import warnings
     warnings.warn("bipython might not work in Python 3, I'll get to it soon")
 
-VERSION = "0.1.1"
+VERSION = "0.1"
 
 setup_kwargs = {
-    "version": VERSION + '.0',
+    "version": VERSION + '.1',
     "description": 'bipython: boldly indiscriminate python interpreter',
     "author": 'Paul Ivanov',
     "author_email": 'pi@berkeley.edu',
@@ -32,7 +32,7 @@ setup_kwargs = {
         "Topic :: Utilities",
         ],
     "zip_safe": False,
-    "data_files": [("", ['LICENSE', 'README.md']),],
+    "data_files": [("", ['LICENSE', 'README.md', 'desc.rst']),],
     }
 
 if have_setuptools:
@@ -44,7 +44,7 @@ if have_setuptools:
         ]
 
 if __name__ == '__main__':
-    with open('README.md') as f:
+    with open('desc.rst') as f:
         descr = f.read()
     descr = descr[:descr.find('TODO')]
     setup(
