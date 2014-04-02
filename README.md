@@ -1,7 +1,8 @@
-![bipython logo](http://bipython.org/bipython_logo.png)
-
 bipython
 =========
+
+![bipython logo](http://bipython.org/bipython_logo.png)
+
 
 the boldly indiscriminate python interpreter
 --------------------------------------------
