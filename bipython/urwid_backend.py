@@ -1,57 +1,32 @@
+#  Copyright (c) 2014, Paul Ivanov <pi@bereley.edu>
+#  Distributed under the terms of the Modified BSD License.
+#  The full license is in the LICENSE file distributed with this software.
+"""bipython: the boldly indiscriminate Python interpreter
 
-#
-# The MIT License
-#
-# Copyright (c) 2010-2011 Marien Zwart
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
+based on bpython backend based on Urwid.
 
-
-"""bpython backend based on Urwid.
-
-Based on Urwid 0.9.9.
-
-This steals many things from bpython's "cli" backend.
-
-This is still *VERY* rough.
+http://bipython.org
 """
-
-
 from __future__ import absolute_import, with_statement, division
+
+__author__ = 'Paul Ivanov (pi@berkeley.edu)'
+__copyright__ = 'Copyright (c) 2014 Paul Ivanov'
+__license__ = 'BSD'
+
 
 import sys
 import os
-import pydoc
 import time
 import locale
 import signal
 from types import ModuleType
 from optparse import Option
-from glob import glob
 
 from pygments.token import Token
 
 from bpython import args as bpargs, repl, translations
-from bpython._py3compat import py3
 from bpython.formatter import theme_map
 from bpython.importcompletion import find_coroutine
-from bpython import importcompletion, inspection
 from bpython.translations import _
 
 from bpython.keys import urwid_key_dispatch as key_dispatch
@@ -62,7 +37,7 @@ import urwid
 if not py3:
     import inspect
 
-from inspect import ArgSpec
+from inspect import ArgSpec # we eval an ArgSpec repr, see ipython_get_argspec
 
 from Queue import Empty
 
@@ -1267,7 +1242,7 @@ class URWIDRepl(repl.Repl):
             self.echod("got an error")
             return None
 
-        return eval(aspec['data']['text/plain'])
+        return eval(aspec['data']['text/plain']) # relies on ArgSpec
 
 
     def ipython_complete(self, base, current_line, pos=None):
