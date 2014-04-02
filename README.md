@@ -76,9 +76,11 @@ The Power is Yours!
 
 For now, you'll need to have a running ipython kernel before running `bipython`.
 You can do this by either opening a notebook or running `ipython console`. 
-It won't always be like this, I'll fix it soon.
+It won't always be like this, I'll fix it as soon as I can, but it'll be sooner 
+[with your help over ivanov/bipython](https://github.com/ivanov/bipython).
 
 After that, just run `bipython` and enjoy the ride. 
+
 
 Copyright (c) 2014, [Paul Ivanov](http://pirsquared.org/blog)
 
