@@ -1,18 +1,16 @@
 #  Copyright (c) 2014, Paul Ivanov <pi@bereley.edu>
 #  Distributed under the terms of the Modified BSD License.
 #  The full license is in the LICENSE file distributed with this software.
-"""bipython: the boldly indiscriminate Python interpreter
 
-based on bpython backend based on Urwid.
+"""bipython: the boldly indiscriminate Python interpreter
 
 http://bipython.org
 """
 from __future__ import absolute_import, with_statement, division
 
-__author__ = 'Paul Ivanov (pi@berkeley.edu)'
+__author__ = 'Paul Ivanov <pi@berkeley.edu>'
 __copyright__ = 'Copyright (c) 2014 Paul Ivanov'
 __license__ = 'BSD'
-
 
 import sys
 import os
@@ -1504,7 +1502,7 @@ class URWIDRepl(repl.Repl):
         # ps1 is getting loaded from. If anyone wants to make
         # non-ascii prompts work feel free to fix this.
         if not more:
-            caption = ('comment', "\n" + self.ipy_ps1.decode('ascii'))
+            caption = ('prompt', "\n" + self.ipy_ps1.decode('ascii'))
             self.stdout_hist += self.ps1
         else:
             caption = ('prompt_more', self.ps2.decode('ascii'))
@@ -1672,6 +1670,10 @@ def main(args=None, locals_=None, banner=None):
             sys.stderr.write('No reactors are available. Please install '
                 'twisted for reactor support.\n')
         return
+
+    # XXX: had to interject myself here to fix the blueness of comments
+    config.color_scheme['comment'] = 'g'
+    config.color_scheme['prompt'] = 'b'
 
     palette = [
         (name, COLORMAP[color.lower()], 'default',

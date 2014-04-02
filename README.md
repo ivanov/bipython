@@ -101,7 +101,6 @@ TODO / KNOWN ISSUES:
         [ ] maybe i should hook into interp and just turn that into a no-op,
             that way i can keep the current (cheap) history as is?
 
-
     [ ] MUSTFIX: Python 3 compatability (all of my dependencies meet them)
 
     [ ] see if I can put in workaround for stable bpython 
@@ -111,6 +110,8 @@ TODO / KNOWN ISSUES:
     [ ] need to release today!
 
     [ ] implement Rewind feature
+
+    [ ] next(<tab><tab> keeps repeating the docstring)
 
     [x] got monospaced theme picked out for pelican
 
