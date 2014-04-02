@@ -15,7 +15,7 @@ if sys.version_info[0] >= 3:
 VERSION = "0.1"
 
 setup_kwargs = {
-    "version": VERSION + '.1',
+    "version": VERSION + '.2',
     "description": 'bipython: boldly indiscriminate python interpreter',
     "author": 'Paul Ivanov',
     "author_email": 'pi@berkeley.edu',
