@@ -24,6 +24,7 @@ TODO / ISSUES:
 
     [ ] would also be nice to get local completion in the case of long input cells
 
+[ ] see if I can put in workaround for stable bipython
 
 [ ] need to release today!
 
