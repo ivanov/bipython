@@ -33,12 +33,15 @@ from bpython._py3compat import PythonLexer, py3
 
 import urwid
 
-if not py3:
-    import inspect
-
+import inspect
 from inspect import ArgSpec # we eval an ArgSpec repr, see ipython_get_argspec
 
-from Queue import Empty
+try:
+    #python 3
+    from queue import Empty
+except ImportError:
+    #python 2
+    from Queue import Empty
 
 Parenthesis = Token.Punctuation.Parenthesis
 
@@ -1508,7 +1511,7 @@ class URWIDRepl(repl.Repl):
         # ps1 is getting loaded from. If anyone wants to make
         # non-ascii prompts work feel free to fix this.
         if not more:
-            caption = ('prompt', "\n" + self.ipy_ps1.decode('ascii'))
+            caption = ('prompt', "\n" + self.ipy_ps1)
             self.stdout_hist += self.ps1
         else:
             caption = ('prompt_more', self.ps2.decode('ascii'))
@@ -1562,7 +1565,7 @@ class URWIDRepl(repl.Repl):
             self.history.append(inp)
             self.edit.make_readonly()
             # XXX what is this s_hist thing?
-            self.stdout_hist += inp.encode(locale.getpreferredencoding()) + '\n'
+            self.stdout_hist += inp + '\n'
             self.edit = None
             # This may take a while, so force a redraw first:
             self.main_loop.draw_screen()
@@ -1635,7 +1638,7 @@ class URWIDRepl(repl.Repl):
                 if back:
                     current_match = self.matches_iter.previous()
                 else:
-                    current_match = self.matches_iter.next()
+                    current_match = next(self.matches_iter)
                 if current_match:
                     self.overlay.tooltip_focus = True
                     if self.tooltip.grid:
@@ -1694,7 +1697,7 @@ def main(args=None, locals_=None, banner=None):
     palette = [
         (name, COLORMAP[color.lower()], 'default',
          'bold' if color.isupper() else 'default')
-        for name, color in config.color_scheme.iteritems()]
+        for name, color in config.color_scheme.items()]
     palette.extend([
             ('bold ' + name, color + ',bold', background, monochrome)
             for name, color, background, monochrome in palette])
