@@ -17,7 +17,7 @@ PROLOGUE
     | From ancient grudge break to new mutiny,
     | Where civil code makes git commits unclean.
     | From forth the fatal loins of these two foes
-    | A newer kind of strager's given life;
+    | A newer kind of stranger's given life;
     | Whose misadventured piteous overthrows
     | Doth with its birth bury its parents' strife.
 
@@ -40,11 +40,12 @@ ACT I
 `**``ipython``** <http://ipython.org/>`__
 
     | I'm an awesome *suite* of interactive computing ideas that work together.
-    | For millenia, I've given you tab-completion and object introspection via
+    | For millennia, I've given you tab-completion and object introspection via
     | ``obj?`` instead of ``help(obj)`` in Python. I also have sweet shell features,
     | special magic commands (``%run``, ``%timeit``, ``%matplotlib``, etc.) and a
     | history mechanism for both input (command history) and output (results
     | caching).  
+    |
     | More recently, I've decoupled the REPL into clients and kernels, allowing
     | them to run on independent of each other. One popular client is the
     | IPython Notebook which allows you to write code and prose using a web
