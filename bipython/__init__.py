@@ -705,8 +705,8 @@ class URWIDRepl(repl.Repl):
                 else:
                     fullpath = find_connection_file(s.lstrip().rstrip())
             except IOError,e:
-                self.echod(":IPython " + s + " failed", "Info")
-                self.echod("^-- failed '" + s + "' not found", "Error")
+                self.echod(":IPython " + s + " failed")
+                self.echod("^-- failed '" + s + "' not found")
                 return
             km = KernelManager(connection_file = fullpath)
             km.load_connection_file()
@@ -724,8 +724,8 @@ class URWIDRepl(repl.Repl):
                     stdin_address=(ip, cfg['stdin_port']),
                     hb_address=(ip, cfg['hb_port']))
             except KeyError,e:
-                self.echod(":IPython " +s + " failed", "Info")
-                self.echod("^-- failed --"+e.message.replace('_port','')+" not specified", "Error")
+                self.echod(":IPython " +s + " failed")
+                self.echod("^-- failed --"+e.message.replace('_port','')+" not specified")
                 return
 
         try:
