@@ -707,13 +707,13 @@ class URWIDRepl(repl.Repl):
             except IOError,e:
                 self.echod(":IPython " + s + " failed")
                 self.echod("^-- failed '" + s + "' not found")
-                return
+                over_the_line()
             km = KernelManager(connection_file = fullpath)
             km.load_connection_file()
         else:
             if s == '':
                 self.echod(":IPython 0.11 requires the full connection string")
-                return
+                over_the_line()
             loader = KeyValueConfigLoader(s.split(), aliases=kernel_aliases)
             cfg = loader.load_config()['KernelApp']
             try:
@@ -726,7 +726,8 @@ class URWIDRepl(repl.Repl):
             except KeyError,e:
                 self.echod(":IPython " +s + " failed")
                 self.echod("^-- failed --"+e.message.replace('_port','')+" not specified")
-                return
+                over_the_line()
+                
 
         try:
             kc = km.client()
@@ -755,13 +756,7 @@ class URWIDRepl(repl.Repl):
         try:
             child = self.ipython_get_child_msg(msg_id)
         except Empty:
-            import sys
-            sys.stderr.write("\n")
-            sys.stderr.write("""Unable to connect to IPython:
-            Either it's busy executing, or you haven't started one. 
-            use `ipython console` in another shell first, or open a
-            new IPython Notebook\n""")
-            sys.exit(1)
+            over_the_line()
 
         self.send_ipython(bipy_func, silent=True)
         # TODO: get a proper history navigator
@@ -1893,6 +1888,16 @@ def load_urwid_command_map(config):
             'up_one_line': 'C-p',
             'yank_from_buffer': 'C-y'},
 """
+def over_the_line():
+    "This is a league game, Smokey"
+    import sys
+    sys.stderr.write("\n")
+    sys.stderr.write("""Unable to connect to IPython:
+    Either it's busy executing, or you haven't started one. 
+    use `ipython console` in another shell first, or open a
+    new IPython Notebook\n""")
+    sys.exit(1)
+
 if __name__ == '__main__':
     sys.exit(main())
 
