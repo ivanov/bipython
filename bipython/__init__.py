@@ -7,6 +7,7 @@
 http://bipython.org
 """
 from __future__ import absolute_import, with_statement, division
+from __future__ import print_function
 
 __author__ = 'Paul Ivanov <pi@berkeley.edu>'
 __copyright__ = 'Copyright (c) 2014 Paul Ivanov'
@@ -158,7 +159,7 @@ if urwid.VERSION < (1, 0, 0) and hasattr(urwid, 'TwistedEventLoop'):
                     # This is the same as in urwid.
                     # We are obviously not supposed to ever hit this.
                     import sys
-                    print sys.exc_info()
+                    print(sys.exc_info())
                     self._exc_info = sys.exc_info()
                     self.reactor.crash()
             return wrapper
@@ -664,7 +665,7 @@ class URWIDRepl(repl.Repl):
         XXX: copy-paste engineering from vim-ipython. Proceed with caution
         """
         def echo(x):
-            print x
+            print(x)
 
         try:
             import IPython
@@ -704,7 +705,7 @@ class URWIDRepl(repl.Repl):
                     fullpath = find_connection_file(k,p)
                 else:
                     fullpath = find_connection_file(s.lstrip().rstrip())
-            except IOError,e:
+            except IOError as e:
                 self.echod(":IPython " + s + " failed")
                 self.echod("^-- failed '" + s + "' not found")
                 over_the_line()
@@ -723,7 +724,7 @@ class URWIDRepl(repl.Repl):
                     sub_address=(ip, cfg['iopub_port']),
                     stdin_address=(ip, cfg['stdin_port']),
                     hb_address=(ip, cfg['hb_port']))
-            except KeyError,e:
+            except KeyError as e:
                 self.echod(":IPython " +s + " failed")
                 self.echod("^-- failed --"+e.message.replace('_port','')+" not specified")
                 over_the_line()
@@ -751,7 +752,7 @@ class URWIDRepl(repl.Repl):
             kc.iopub_channel = kc.sub_channel
         self.km = km
         self.kc = kc
-        print km
+        print(km)
         msg_id = self.send_ipython('# bpython connected')
         try:
             child = self.ipython_get_child_msg(msg_id)
@@ -1149,7 +1150,7 @@ class URWIDRepl(repl.Repl):
         self.scr.refresh()
 
         if self.buffer:
-            for _ in xrange(indent):
+            for _ in range(indent):
                 self.tab()
 
         self.evaluating = False
@@ -1437,7 +1438,7 @@ class URWIDRepl(repl.Repl):
             #self.send_ipython("x = " + str(x))
             #+ "\n".join(returned) 
             return False
-        except SystemExit, e:
+        except SystemExit as e:
             self.exit_value = e.args
             raise urwid.ExitMainLoop()
         except KeyboardInterrupt:
@@ -1680,7 +1681,7 @@ def main(args=None, locals_=None, banner=None):
             from twisted.application import reactors
             # Stolen from twisted.application.app (twistd).
             for r in reactors.getReactorTypes():
-                print '    %-4s\t%s' % (r.shortName, r.description)
+                print('    %-4s\t%s' % (r.shortName, r.description))
         except ImportError:
             sys.stderr.write('No reactors are available. Please install '
                 'twisted for reactor support.\n')
