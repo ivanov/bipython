@@ -1,5 +1,4 @@
-bipython
-=========
+# [bipython](http://bipython.org/)
 
 [![bipython logo](http://bipython.org/bipython_logo.png)](http://bipython.org/)
 
@@ -10,9 +9,11 @@ the boldly indiscriminate python interpreter
 
 *"...because you shouldn't have to choose."*
 
-http://bipython.org/
 
-Watch the [extended explanatory demo](http://bipython.org/pages/demo.html)
+Watch the [extended demo](http://bipython.org/pages/demo.html) which shows off
+the strengths and limitations of `bpython` and `ipython`, and shows off how
+`bipython` combines the two in a complementary manner so you get the best of
+both worlds.
 
 PROLOGUE
 --------
