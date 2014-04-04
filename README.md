@@ -1,13 +1,18 @@
 bipython
 =========
 
-![bipython logo](http://bipython.org/bipython_logo.png)
+[![bipython logo](http://bipython.org/bipython_logo.png)](http://bipython.org/)
+
 
 
 the boldly indiscriminate python interpreter
 --------------------------------------------
 
 *"...because you shouldn't have to choose."*
+
+http://bipython.org/
+
+Watch the [extended explanatory demo](http://bipython.org/pages/demo.html)
 
 PROLOGUE
 --------
@@ -272,6 +277,6 @@ TODO / KNOWN ISSUES:
 
     [ ] ask bob to be added to related projects on bpython-interpreter.org
 
-    [ ] make screencast demo
+    [x] make screencast demo
 
     [ ] process command line argument to connect to the right kernel
