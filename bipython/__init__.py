@@ -1656,7 +1656,7 @@ def main(args=None, locals_=None, banner=None):
     parser = argparse.ArgumentParser(
             description='the boldly indiscriminate Python interpreter')
     parser.add_argument( '-v','--version', action='version', 
-            version='%(prog)s 0.1.0')
+            version='%(prog)s 0.1.0 (Python %)' + sys.version.split()[0])
     
     parser.parse_known_args()
 

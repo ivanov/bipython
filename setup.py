@@ -50,7 +50,10 @@ if __name__ == '__main__':
     setup(
         name='bipython',
         packages=['bipython'],
-        entry_points={'console_scripts': ['bipython = bipython:main',],},
+        entry_points={'console_scripts': [
+            'bipython = bipython:main',
+            'bipython%s = bipython:main' % sys.version_info.major
+            ],},
         long_description=descr,
         **setup_kwargs
         )
