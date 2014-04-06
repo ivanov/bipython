@@ -12,6 +12,7 @@ if sys.version_info[0] >= 3:
     import warnings
     warnings.warn("bipython might not work in Python 3, I'll get to it soon")
 
+import bipython
 VERSION = bipython.__version__
 M_VERSION = VERSION[:VERSION.rfind('.')]
 
@@ -22,6 +23,8 @@ setup_kwargs = {
     "author_email": 'pi@berkeley.edu',
     "url": 'http://bipython.org/',
     "download_url": "https://github.com/ivanov/bipython/zipball/" + M_VERSION,
+    "keywords": ["Interactive", "Interpreter", "Shell", "bpython", "ipython",
+        "urwid", ],
     "classifiers": [
         "License :: OSI Approved :: BSD License",
         "Development Status :: 3 - Alpha",

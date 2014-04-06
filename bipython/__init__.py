@@ -33,7 +33,6 @@ from bpython.keys import urwid_key_dispatch as key_dispatch
 from bpython._py3compat import PythonLexer, py3
 
 import urwid
-
 import inspect
 from inspect import ArgSpec # we eval an ArgSpec repr, see ipython_get_argspec
 
