@@ -1002,10 +1002,7 @@ class URWIDRepl(repl.Repl):
                 # This is mostly just stolen from the cli module.
                 func_name, args, is_bound, in_arg = self.argspec
                 args, varargs, varkw, defaults = args[:4]
-                if py3:
-                    kwonly, kwonly_defaults = args[4:]
-                else:
-                    kwonly, kwonly_defaults = [], {}
+                kwonly, kwonly_defaults = [], {}
                 markup = [('bold name', func_name),
                           ('name', ': (')]
 
