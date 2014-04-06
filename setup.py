@@ -12,15 +12,16 @@ if sys.version_info[0] >= 3:
     import warnings
     warnings.warn("bipython might not work in Python 3, I'll get to it soon")
 
-VERSION = "0.1"
+VERSION = bipython.__version__
+M_VERSION = VERSION[:VERSION.rfind('.')]
 
 setup_kwargs = {
-    "version": VERSION + '.2',
-    "description": 'bipython: boldly indiscriminate python interpreter',
+    "version": VERSION,
+    "description": 'bipython: the boldly indiscriminate python interpreter',
     "author": 'Paul Ivanov',
     "author_email": 'pi@berkeley.edu',
     "url": 'http://bipython.org/',
-    "download_url": "https://github.com/ivanov/bipython/zipball/" + VERSION,
+    "download_url": "https://github.com/ivanov/bipython/zipball/" + M_VERSION,
     "classifiers": [
         "License :: OSI Approved :: BSD License",
         "Development Status :: 3 - Alpha",

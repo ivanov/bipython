@@ -12,6 +12,7 @@ from __future__ import print_function
 __author__ = 'Paul Ivanov <pi@berkeley.edu>'
 __copyright__ = 'Copyright (c) 2014 Paul Ivanov'
 __license__ = 'BSD'
+__version__ = '0.1.3'
 
 import sys
 import os
@@ -1656,7 +1657,8 @@ def main(args=None, locals_=None, banner=None):
     parser = argparse.ArgumentParser(
             description='the boldly indiscriminate Python interpreter')
     parser.add_argument( '-v','--version', action='version', 
-            version='%(prog)s 0.1.0 (Python %)' + sys.version.split()[0])
+            version='%(prog)s ' +'%s (Python %s)' % 
+                (__version__, sys.version.split()[0]))
     
     parser.parse_known_args()
 
