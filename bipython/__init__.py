@@ -655,6 +655,7 @@ class URWIDRepl(repl.Repl):
         self.ipython = self.connect_ipython_kernel()
         self.ipy_execution_count = '0'
         self.debug_docstring = ''
+        self.docstring_widget = None
     
     @property
     def ipy_ps1(self):
@@ -854,7 +855,7 @@ class URWIDRepl(repl.Repl):
 
         if not self._get_args():
             self.argspec = None
-        #elif self.current_func is not None:
+        
         if self.current_func is not None:
             self.ipython_get_doc(self.current_func)
 
@@ -1084,17 +1085,14 @@ class URWIDRepl(repl.Repl):
         else:
             self.frame.body = self.listbox
             self.tooltip.grid = None
-        #self._populate_docstring(pop=False)
+        self.docstring_widget = urwid.Text(('comment', ''))
+        widget_list.append(self.docstring_widget)
+        self._populate_docstring(pop=False)
 
     def _populate_docstring(self, pop=False):
         "Make visible the docstring"
-        widget_list = self.tooltip.body
-        if pop:
-            widget_list.pop()
         if self.docstring:
-            # TODO: use self.format_docstring? needs a width/height...
-            docstring = self.docstring
-            widget_list.append(urwid.Text(('comment', docstring)))
+            self.docstring_widget.set_text(('comment', self.docstring))
 
     def reprint_line(self, lineno, tokens):
         edit = self.edits[-len(self.buffer) + lineno - 1]
