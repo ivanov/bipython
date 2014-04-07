@@ -1419,6 +1419,9 @@ class URWIDRepl(repl.Repl):
         # Pretty blindly adapted from bpython.cli
         try:
             msg_id = self.send_ipython(s)
+            if hasattr(repl.Repl, 'insert_into_history'):
+                # this is only in unreleased version of bpython
+                self.insert_into_history(s)
             if self.edit is not None:
                 self.edit.make_readonly()
             self.buffer = []
