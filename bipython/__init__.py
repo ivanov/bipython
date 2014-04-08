@@ -45,6 +45,8 @@ except ImportError:
 
 Parenthesis = Token.Punctuation.Parenthesis
 
+version = '%s (Python %s)' % (__version__, sys.version.split()[0])
+
 # Urwid colors are:
 # 'black', 'dark red', 'dark green', 'brown', 'dark blue',
 # 'dark magenta', 'dark cyan', 'light gray', 'dark gray',
@@ -757,7 +759,7 @@ class URWIDRepl(repl.Repl):
         self.km = km
         self.kc = kc
         print(km)
-        msg_id = self.send_ipython('# bpython connected')
+        msg_id = self.send_ipython('# bpython ' + version + ' connected')
         try:
             child = self.ipython_get_child_msg(msg_id)
         except Empty:
@@ -1653,10 +1655,8 @@ def main(args=None, locals_=None, banner=None):
     import argparse
     parser = argparse.ArgumentParser(
             description='the boldly indiscriminate Python interpreter')
-    parser.add_argument( '-v','--version', action='version', 
-            version='%(prog)s ' +'%s (Python %s)' % 
-                (__version__, sys.version.split()[0]))
-    
+    parser.add_argument( '-v','--version', action='version',
+            version='%(prog)s ' + version)
     parser.parse_known_args()
 
     # ok, it's not nice, i'm hiding all of these params, but LTS.
