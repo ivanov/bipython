@@ -45,7 +45,16 @@ except ImportError:
 
 Parenthesis = Token.Punctuation.Parenthesis
 
-version = '%s (Python %s)' % (__version__, sys.version.split()[0])
+try:
+    import subprocess
+    commit = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'], cwd=os.path.dirname(__file__)).strip()
+    __version__ += ' [' + commit + ']'
+except:
+    pass
+
+version = '%s (Python %s) ' % (__version__, sys.version.split()[0])
+
+
 
 # Urwid colors are:
 # 'black', 'dark red', 'dark green', 'brown', 'dark blue',
