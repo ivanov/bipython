@@ -107,6 +107,8 @@ TODO / KNOWN ISSUES:
         [ ] maybe i should hook into interp and just turn that into a no-op,
             that way i can keep the current (cheap) history as is?
 
+        [ ] handle History.enabled = False case gracefully as well
+
     [ ] MUSTFIX: Python 3 compatability (all of my dependencies meet them)
 
     [ ] see if I can put in workaround for stable bpython 
@@ -281,3 +283,10 @@ TODO / KNOWN ISSUES:
     [x] make screencast demo
 
     [ ] process command line argument to connect to the right kernel
+
+    [ ] tests: make tests for the generic client, then we won't be in as bad of
+        a shape here
+
+    [ ] OO refactor of client code as a mixin
+
+    [ ] up-arrow shouldn't search for partial completion (since that won't work)
