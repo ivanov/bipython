@@ -610,10 +610,62 @@ class URWIDInteraction(repl.Interaction):
             callback(text)
 
 
-class IPythonHistory(object):
-    # make this
+class NotIPythonKernel(Exception):
     pass
 
+class IPythonHistory(repl.History):
+    """A history mechanism that interacts with IPython.
+
+    This relies on the standard IPython kernel, because it uses
+    `get_ipyton().history_manager` to fetch results.
+
+    As a fall back, local readline completion should be implemented when a new
+    instance of IPythonHistory can not initialize and raises an error.
+    """
+
+    def __init__(self, repl):
+        """The required argument is a handle on the repl, which will be ued to
+        communicate with the IPython kernel. If a connection cannot be made,
+        or no expected results are returned, we raise a NotIPythonKernel
+        error, so that the vanilla readline completion can continue to be used
+        as a fallback.
+        """
+        msg_id = repl.send_ipython('', silent=False, user_expressions={ 'hist':
+            "list(get_ipython().history_manager.get_range())"})
+        # XXX: for now we only grab history from current sesssion
+            #"list(get_ipython().history_manager.get_tail(100))"})
+                #silent=True)
+
+
+        output = repl.ipython_get_child_msg(msg_id)['content']
+        hist = eval(output['user_expressions']['hist']['data']['text/plain'])
+        self.hist = hist
+        repl.debug_docstring = str(hist)
+        repl.debug_docstring = ''
+        self.entries = ['']
+        self.index = 0
+        self.saved_line = ''
+        self.duplicates = True # allow duplicates
+        self.repl = repl
+        self.load()
+        #raise NotIPythonKernel()
+
+    def load(self, *args, **kwargs):
+        """Load history from a live IPython session.
+        
+        Arguments are ignored, and are only listed here for API compatibility
+        with bpython's History class, which takes `filename` and `encoding`
+        arguments, but those don't make sense in this instance.
+        """
+        # XXX: stopgap: get the history from ipython, write it to a file, and
+        # proceed with the normal load after that
+        for line in self.hist:
+            self.append(line[-1])
+            self.repl.stdout_hist += "\n" + line[-1]
+
+    def save(self, *args, **kw):
+        pass
+        
 class URWIDRepl(repl.Repl):
 
     _time_between_redraws = .05 # seconds
@@ -663,9 +715,10 @@ class URWIDRepl(repl.Repl):
         self.exit_value = ()
 
         load_urwid_command_map(config)
-        self.ipython = self.connect_ipython_kernel()
-        self.ipy_execution_count = '0'
         self.debug_docstring = ''
+        self.ipython = self.connect_ipython_kernel()
+        
+        self.ipy_execution_count = '0'
         self.docstring_widget = None
     
     @property
@@ -768,7 +821,7 @@ class URWIDRepl(repl.Repl):
         self.km = km
         self.kc = kc
         print(km)
-        msg_id = self.send_ipython('# bpython ' + version + ' connected')
+        msg_id = self.send_ipython('# bpython ' + version + ' connected\n')
         try:
             child = self.ipython_get_child_msg(msg_id)
         except Empty:
@@ -776,7 +829,15 @@ class URWIDRepl(repl.Repl):
 
         self.send_ipython(bipy_func, silent=True)
         # TODO: get a proper history navigator
-        #self.rl_history = IPythonHistory(kc)
+        #
+        try:
+            self.rl_history = IPythonHistory(self)
+        except NotIPythonKernel:
+            # We must not be running an IPython Kernel
+            #sys.stderr.write(
+            self.debug_docstring = "could not access IPython history, falling back to readline"
+            sys.stderr.flush()
+            pass
         self.ipython_set_pid()
 
         return km
@@ -1428,6 +1489,9 @@ class URWIDRepl(repl.Repl):
             if hasattr(repl.Repl, 'insert_into_history'):
                 # this is only in unreleased version of bpython
                 self.insert_into_history(s)
+                # on the IPython side, at least for the Python kernel, history
+                # is managed for us by the history manager, so there's no need
+                # to do anything here.
             if self.edit is not None:
                 self.edit.make_readonly()
             self.buffer = []
@@ -1586,12 +1650,12 @@ class URWIDRepl(repl.Repl):
             # "back" from bpython.cli
             self.rl_history.enter(self.edit.get_edit_text())
             self.edit.set_edit_text('')
-            self.edit.insert_text(self.rl_history.back())
+            self.edit.insert_text(self.rl_history.back()) # + "#previous")
         elif urwid.command_map[event] == 'cursor down':
             # "fwd" from bpython.cli
             self.rl_history.enter(self.edit.get_edit_text())
             self.edit.set_edit_text('')
-            self.edit.insert_text(self.rl_history.forward())
+            self.edit.insert_text(self.rl_history.forward()) # + "#next")
         elif urwid.command_map[event] == 'next selectable':
             self.tab()
         elif urwid.command_map[event] == 'prev selectable':
