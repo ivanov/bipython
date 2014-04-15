@@ -447,7 +447,14 @@ class BPythonEdit(urwid.Edit):
                 p = len(line[:self.edit_pos].strip())
                 line = line[:p] + line[self.edit_pos:]
                 # delete a full word
-                np = line.rfind(' ', 0, p)
+                # XXX: fugly word splitting heuristics, but better than just
+                #      slitting on space
+                np = max(
+                        line.rfind(' ', 0, p),
+                        line.rfind('.', 0, p),
+                        line.rfind('(', 0, p),
+                        line.rfind('=', 0, p)
+                        )
                 if np == -1:
                     line = line[p:]
                     np = 0
