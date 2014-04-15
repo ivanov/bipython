@@ -853,7 +853,7 @@ class URWIDRepl(repl.Repl):
     
     def complete(self, tab=False):
         "bipython completion - punt to ipython"
-        self.docstring = None
+        self.docstring = ''
         
         returned = self.ipython_process_msgs()
 
@@ -1098,12 +1098,11 @@ class URWIDRepl(repl.Repl):
             self.tooltip.grid = None
         self.docstring_widget = urwid.Text(('comment', ''))
         widget_list.append(self.docstring_widget)
-        self._populate_docstring(pop=False)
+        self._populate_docstring()
 
-    def _populate_docstring(self, pop=False):
+    def _populate_docstring(self):
         "Make visible the docstring"
-        if self.docstring:
-            self.docstring_widget.set_text(('comment', self.docstring))
+        self.docstring_widget.set_text(('comment', self.docstring))
 
     def reprint_line(self, lineno, tokens):
         edit = self.edits[-len(self.buffer) + lineno - 1]
@@ -1296,7 +1295,6 @@ class URWIDRepl(repl.Repl):
         #self.debug_docstring = 'doc called for ' + func
         #self.stdout_hist += "\nDEBUG: doc called for " + func
         #self.send_ipython('# ' + self.debug_docstring)
-        pop = self.docstring is not None
         try:
             level = 0
             msg_id = self.kc.shell_channel.object_info(func, level)
@@ -1305,11 +1303,8 @@ class URWIDRepl(repl.Repl):
                 doc = ['']
             self.docstring = "\n".join(doc)
         except IndexError:
-            self.docstring = None
-        else:
-            if not self.docstring:
-                self.docstring = None
-        self._populate_docstring( pop=pop)
+            self.docstring = ''
+        self._populate_docstring()
 
     def ipython_get_doc_msg(self, msg_id):
         n = 13 # longest field name (empirically)
