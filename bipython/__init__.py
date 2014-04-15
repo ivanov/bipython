@@ -1171,6 +1171,10 @@ class URWIDRepl(repl.Repl):
     def _populate_docstring(self):
         "Make visible the docstring"
         self.docstring_widget.set_text(('comment', self.docstring))
+    
+    def clear_docstring(self):
+        "remove the docstring"
+        self.docstring_widget.set_text('')
 
     def reprint_line(self, lineno, tokens):
         edit = self.edits[-len(self.buffer) + lineno - 1]
@@ -1667,8 +1671,10 @@ class URWIDRepl(repl.Repl):
             self.tab()
         elif urwid.command_map[event] == 'prev selectable':
             self.tab(True)
-        #else:
-        #    self.echo(repr(event))
+        elif event == 'esc':
+            self.clear_docstring() # why is this so slow?, ARGH!
+        else:
+            self.echo(repr(event))
 
     def tab(self, back=False):
         """Process the tab key being hit.
