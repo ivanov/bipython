@@ -102,32 +102,34 @@ TODO / KNOWN ISSUES:
 
         [ ] would also be nice to get local completion in the case of long input cells
 
-    [ ] MUSTFIX: up/down arrow keys for history don't work yet.
+    [x] MUSTFIX: up/down arrow keys for history don't work yet.
 
-        [ ] maybe i should hook into interp and just turn that into a no-op,
+        [x] maybe i should hook into interp and just turn that into a no-op,
             that way i can keep the current (cheap) history as is?
+
+        [ ] make history work *across* sessions, not just current one
+
+        [ ] make multiline history work
 
         [ ] handle History.enabled = False case gracefully as well
 
-    [ ] MUSTFIX: Python 3 compatability (all of my dependencies meet them)
+    [x] MUSTFIX: Python 3 compatability (all of my dependencies meet them)
 
     [ ] see if I can put in workaround for stable bpython 
-        - v0.12 works, so says Anthony
+        - v0.12 works, so says Anthony ( though cheap history won't work there)
         - can I also make 0.11-1.1 work? (that's what Ubuntu 13.10 shipped)
-
-    [ ] need to release today!
 
     [ ] implement Rewind feature
 
-    [ ] next(<tab><tab> keeps repeating the docstring)
+    [x] next(<tab><tab> keeps repeating the docstring)
 
     [x] got monospaced theme picked out for pelican
 
-    [ ] insert "fork me on github" overlay there.
+    [x] insert "fork me on github" overlay there.
 
     [x] colorize in and out prompts
 
-    [ ] re-colorize the blue docstring stuff - make it magenta
+    [x] re-colorize the blue docstring stuff - make it green
 
     [x] only show docstring in tooltip
 
@@ -157,13 +159,14 @@ TODO / KNOWN ISSUES:
         it. Investigate how easy it is to port what I have back to the cli
         version of bpython code
 
-    [ ] LOW: make ctrl-w delete word - with '.' being a word separator
+    [x] LOW: make ctrl-w delete word - with '.' being a word separator
 
     [ ] how do i keep the completion tooltip from going on top of wherever i'm
         typing - seems like it's hardcoded to do that after going half-way down
         the screen
 
-        [ ] alt: use escape to remove it?
+        [x] alt: use escape to remove it? (though it's slow)
+            [ ] trigger some sort of faster redraw?
 
     [ ] colorize / pygemntize the pyin results - damn it - that requires hooking
         into the lexer again...
@@ -171,12 +174,12 @@ TODO / KNOWN ISSUES:
     [ ] setup sigalarm or setup eventloop to check for new messages' arrival
         - we already do it on typing, i think...
 
-    [ ] print from elswhere - then <space> in bipython freezes it (if the
+    [x] print from elswhere - then <space> in bipython freezes it (if the
         completion thing was already open
         - this can be fixed by not printing docstring like i do for debugging
           - actually, no, that doesn't work
 
-    [ ] ctrl-w shouldn't remove space before the cur word.
+    [x] ctrl-w shouldn't remove space before the cur word.
 
     [ ] look for ps1 ps2 for hints where continuation happens
 
@@ -290,3 +293,5 @@ TODO / KNOWN ISSUES:
     [ ] OO refactor of client code as a mixin
 
     [ ] up-arrow shouldn't search for partial completion (since that won't work)
+
+    [ ] cheap completion is broken again :(
