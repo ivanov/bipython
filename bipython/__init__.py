@@ -451,10 +451,10 @@ class BPythonEdit(urwid.Edit):
                 #      slitting on space
                 np = max(
                         line.rfind(' ', 0, p),
-                        line.rfind('.', 0, p),
-                        line.rfind('(', 0, p),
-                        line.rfind('=', 0, p)
-                        )
+                        line.rfind('.', 0, p-1),
+                        line.rfind('(', 0, p-1),
+                        line.rfind('=', 0, p-1)
+                        ) + 1
                 if np == -1:
                     line = line[p:]
                     np = 0
