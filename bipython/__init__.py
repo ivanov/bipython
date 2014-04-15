@@ -1347,9 +1347,9 @@ class URWIDRepl(repl.Repl):
     
     def ipython_process_msgs(self):
         #b = ['\nIPY msgs']
-        b = []
-        status_prompt_out = 'Out[%(line)d]: ' 
-        status_prompt_in = 'In [%(line)d]: ' 
+        b = ['']
+        status_prompt_out = '\nOut[%(line)d]: ' 
+        status_prompt_in = '\n\nIn [%(line)d]: ' 
         msgs = self.kc.iopub_channel.get_msgs()
         for m in msgs:
             #db.append(str(m).splitlines())
