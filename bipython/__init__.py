@@ -430,6 +430,7 @@ class BPythonEdit(urwid.Edit):
     def keypress(self, size, key):
         if urwid.command_map[key] in ['cursor up', 'cursor down']:
             # Do not handle up/down arrow, leave them for the repl.
+            #sys.stderr.write("cursor keys")
             return key
 
         self._bpy_may_move_cursor = True
@@ -1049,6 +1050,7 @@ class URWIDRepl(repl.Repl):
         text = self.edit.get_edit_text()
         if pos != len(text):
             # Disable autocomplete if not at end of line, like cli does.
+            # XXX: I think we can make this compeltion work here -pi
             return
 
         # Stolen from cli. TODO: clean up and split out.
@@ -1497,6 +1499,7 @@ class URWIDRepl(repl.Repl):
         # Pretty blindly adapted from bpython.cli
         try:
             msg_id = self.send_ipython(s)
+            #self.rl_history.enter(s)
             if hasattr(repl.Repl, 'insert_into_history'):
                 # this is only in unreleased version of bpython
                 self.insert_into_history(s)
@@ -1580,7 +1583,7 @@ class URWIDRepl(repl.Repl):
         # sitting above this prompt:
         self.current_output = None
         # XXX is this the right place?
-        self.rl_history.reset()
+        #self.rl_history.reset()
         # XXX what is s_hist?
 
         # We need the caption to use unicode as urwid normalizes later
@@ -1650,6 +1653,9 @@ class URWIDRepl(repl.Repl):
             self.main_loop.draw_screen()
             more = self.push(inp)
             self.prompt(more)
+            # XXX: fetching all history is expensive, but better than nothing
+            # for now
+            self.rl_history = IPythonHistory(self)
         elif event == 'ctrl d':
             # ctrl+d on an empty line exits, otherwise deletes
             if self.edit is not None:
@@ -1672,7 +1678,9 @@ class URWIDRepl(repl.Repl):
         elif urwid.command_map[event] == 'prev selectable':
             self.tab(True)
         elif event == 'esc':
-            self.clear_docstring() # why is this so slow?, ARGH!
+            self.ipython_get_doc('')
+            #self.clear_docstring() # why is this so slow?, ARGH!
+            # XXX: tab redraws really quickly
         else:
             self.echo(repr(event))
 

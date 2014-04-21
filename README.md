@@ -106,12 +106,15 @@ TODO / KNOWN ISSUES:
 
         [x] maybe i should hook into interp and just turn that into a no-op,
             that way i can keep the current (cheap) history as is?
+        
+        [ ] history saves only last input, make it work with all
 
         [ ] make history work *across* sessions, not just current one
 
         [ ] make multiline history work
 
         [ ] handle History.enabled = False case gracefully as well
+    
 
     [x] MUSTFIX: Python 3 compatability (all of my dependencies meet them)
 
@@ -295,3 +298,8 @@ TODO / KNOWN ISSUES:
     [ ] up-arrow shouldn't search for partial completion (since that won't work)
 
     [ ] cheap completion is broken again :(
+
+    [ ] non-ascii completion breaks bipython (yay unicode)
+
+    [ ] run completion for "import <tab>" since ipython supports that.
+
