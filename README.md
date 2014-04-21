@@ -303,3 +303,5 @@ TODO / KNOWN ISSUES:
 
     [ ] run completion for "import <tab>" since ipython supports that.
 
+    [ ] implement `get_bipython()` command to inspect bipython as I work on it
+

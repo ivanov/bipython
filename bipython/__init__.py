@@ -677,6 +677,7 @@ class IPythonHistory(repl.History):
 class URWIDRepl(repl.Repl):
 
     _time_between_redraws = .05 # seconds
+    rl_history_reset = False
 
     def __init__(self, event_loop, palette, interpreter, config):
         repl.Repl.__init__(self, interpreter, config)
@@ -1655,7 +1656,7 @@ class URWIDRepl(repl.Repl):
             self.prompt(more)
             # XXX: fetching all history is expensive, but better than nothing
             # for now
-            self.rl_history = IPythonHistory(self)
+            self.rl_history_reset = True
         elif event == 'ctrl d':
             # ctrl+d on an empty line exits, otherwise deletes
             if self.edit is not None:
@@ -1665,6 +1666,9 @@ class URWIDRepl(repl.Repl):
                     self.main_loop.process_input(['delete'])
         elif urwid.command_map[event] == 'cursor up':
             # "back" from bpython.cli
+            if self.rl_history_reset:
+                self.rl_history = IPythonHistory(self)
+                self.rl_history_reset = False
             self.rl_history.enter(self.edit.get_edit_text())
             self.edit.set_edit_text('')
             self.edit.insert_text(self.rl_history.back()) # + "#previous")
