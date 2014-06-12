@@ -114,6 +114,8 @@ TODO / KNOWN ISSUES:
         [ ] make multiline history work
 
         [ ] handle History.enabled = False case gracefully as well
+
+        [ ] use `history_request` for history instead of hand (de)serializing
     
 
     [x] MUSTFIX: Python 3 compatability (all of my dependencies meet them)
@@ -230,7 +232,9 @@ TODO / KNOWN ISSUES:
     [x] perform the git surgery to put all of my commits into bipython repo (so
         i can start getting anthony's feedback, if he wants to / can play)
 
-    [ ] TODO: ansi color escape handling
+    [ ] TODO: ansi color escape handling 
+
+        [ ] or at least strip it out
 
     [x] MUSTFIX: tab-completion of magics.
 
@@ -305,3 +309,12 @@ TODO / KNOWN ISSUES:
 
     [ ] implement `get_bipython()` command to inspect bipython as I work on it
 
+    [ ] implement pager payload  (pygments.lexers.text.*Lexer?)
+
+    [ ] use pygments.lexers.agile.PythonTracebackLexer for tracebacks
+
+    [ ] make bipython favicon.ico and upload it
+
+    [ ] check bipython_logo.png references on the website
+
+    [ ] stop printing the version number on login (it's annoying)
