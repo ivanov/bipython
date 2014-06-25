@@ -70,7 +70,6 @@ The Power is Yours!
 ::
 
     pip install  bipython
-    easy_install bipython
 
 ``bipython`` requires ipython, pyzmq, bpython, and urwid.
 

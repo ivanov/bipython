@@ -8,10 +8,6 @@ except ImportError:
     from distutils.core import setup
     have_setuptools = False
 
-if sys.version_info[0] >= 3:
-    import warnings
-    warnings.warn("bipython might not work in Python 3, I'll get to it soon")
-
 import bipython
 VERSION = bipython.__version__
 M_VERSION = VERSION[:VERSION.rfind('.')]
