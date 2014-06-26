@@ -1,6 +1,6 @@
 # [bipython](http://bipython.org/)
 
-[![bipython logo](http://bipython.org/bipython_logo.png)](http://bipython.org/)
+[![bipython logo](http://bipython.org/images/bipython_logo.png)](http://bipython.org/)
 
 
 
@@ -116,12 +116,15 @@ TODO / KNOWN ISSUES:
 
         [ ] use `history_request` for history instead of hand (de)serializing
     
+    [ ] ctrl-d send delete when input is non-empty (should just send it)
 
     [x] MUSTFIX: Python 3 compatability (all of my dependencies meet them)
 
     [ ] see if I can put in workaround for stable bpython 
         - v0.12 works, so says Anthony ( though cheap history won't work there)
         - can I also make 0.11-1.1 work? (that's what Ubuntu 13.10 shipped)
+
+    [ ] make bipython work with ipython master (3.x message spec / API changes)
 
     [ ] implement Rewind feature
 

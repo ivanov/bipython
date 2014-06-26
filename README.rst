@@ -1,7 +1,7 @@
 bipython
 ========
 
-.. figure:: http://bipython.org/bipython_logo.png
+.. figure:: http://bipython.org/images/bipython_logo.png
    :alt: bipython logo
 
 the boldly indiscriminate python interpreter
