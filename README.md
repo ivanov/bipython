@@ -312,6 +312,7 @@ TODO / KNOWN ISSUES:
     [ ] implement `get_bipython()` command to inspect bipython as I work on it
 
     [ ] implement pager payload  (pygments.lexers.text.*Lexer?)
+        - Make foo? and foo?? work
 
     [ ] use pygments.lexers.agile.PythonTracebackLexer for tracebacks
 
