@@ -1377,7 +1377,7 @@ class URWIDRepl(repl.Repl):
             if len(doc) == 0:
                 doc = ['']
             self.docstring = "\n".join(doc)
-        except IndexError:
+        except (IndexError, TypeError):
             self.docstring = ''
         self._populate_docstring()
 
